@@ -42,7 +42,7 @@ module.exports =
           "secret"
         );
 
-      // ================= GET FULL USER =================
+      //GET FULL USER
 
       const user =
         await User.findById(

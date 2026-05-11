@@ -39,7 +39,7 @@ const userSchema =
         default:"customer"
       },
 
-      // ================= RIDER STATUS =================
+      //RIDER STATUS
 
       status:{
         type:String,
@@ -53,7 +53,7 @@ const userSchema =
         default:"available"
       },
 
-      // ================= LIVE LOCATION =================
+      //LIVE LOCATION
 
       latitude:{
         type:Number,
@@ -65,7 +65,7 @@ const userSchema =
         default:0
       },
 
-      // ================= CURRENT ORDER =================
+      //CURRENT ORDER
 
       currentOrder:{
         type:mongoose.Schema.Types.ObjectId,
@@ -75,7 +75,7 @@ const userSchema =
         default:null
       },
 
-      // ================= LAST ACTIVE =================
+      //LAST ACTIVE
 
       lastSeen:{
         type:Date,

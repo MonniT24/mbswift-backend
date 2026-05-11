@@ -72,6 +72,17 @@ io.on(
     );
 
     socket.on(
+  "riderLocation",
+  (data)=>{
+
+    io.emit(
+      "riderLocationUpdate",
+      data
+    );
+  }
+);
+
+    socket.on(
       "disconnect",
       () => {
 

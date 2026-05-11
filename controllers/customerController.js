@@ -1,12 +1,10 @@
-// backend/controllers/customerController.js
-
 const Order =
   require("../models/Order");
 
 const User =
   require("../models/User");
 
-// ================= CREATE ORDER =================
+//CREATE ORDER
 
 exports.createOrder =
   async (
@@ -84,7 +82,7 @@ exports.createOrder =
     }
   };
 
-// ================= GET CUSTOMER ORDERS =================
+//GET CUSTOMER ORDERS
 
 exports.getMyOrders =
   async (
@@ -130,7 +128,7 @@ exports.getMyOrders =
     }
   };
 
-// ================= GET LOGGED USER =================
+//GET LOGGED USER
 
 exports.getMe =
   async (

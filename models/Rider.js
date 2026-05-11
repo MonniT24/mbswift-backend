@@ -9,7 +9,7 @@ const API_BASE =
   process.env.REACT_APP_API_BASE ||
   "http://localhost:5000";
 
-// ================= STYLES =================
+//STYLES
 
 const Page = styled.div`
   min-height:100vh;
@@ -119,7 +119,7 @@ const Empty = styled.div`
   color:#6b7280;
 `;
 
-// ================= COMPONENT =================
+//COMPONENT
 
 export default function Rider(){
 
@@ -132,7 +132,7 @@ export default function Rider(){
   const [loading,setLoading] =
     useState(true);
 
-  // ================= LOAD =================
+  //LOAD
 
   useEffect(()=>{
 
@@ -142,7 +142,7 @@ export default function Rider(){
 
   },[]);
 
-  // ================= FETCH USER =================
+  //FETCH USER
 
   async function fetchUser(){
 
@@ -179,7 +179,7 @@ export default function Rider(){
     }
   }
 
-  // ================= FETCH ORDERS =================
+  //FETCH ORDERS
 
   async function fetchOrders(){
 
@@ -220,7 +220,7 @@ export default function Rider(){
     }
   }
 
-  // ================= UPDATE ORDER =================
+  //UPDATE ORDER
 
   async function updateOrder(
     id,
@@ -272,7 +272,7 @@ export default function Rider(){
     }
   }
 
-  // ================= LOGOUT =================
+  //LOGOUT
 
   function logout(){
 
@@ -282,7 +282,7 @@ export default function Rider(){
       "/login";
   }
 
-  // ================= UI =================
+  // UI
 
   return(
 

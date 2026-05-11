@@ -1,7 +1,7 @@
 const User =
   require("../models/User");
 
-// ================= GET RIDER =================
+//GET RIDER
 
 exports.getMe =
   async (

@@ -61,6 +61,11 @@ exports.createOrder =
 
     try{
 
+      console.log(
+  "BODY:",
+  req.body
+);
+
       const {
 
         pickupLocation,
@@ -165,6 +170,11 @@ exports.createOrder =
           }
         );
 
+        console.log(
+  "ORS STATUS:",
+  orsRes.status
+);
+
       const orsData =
         await orsRes.json();
 
@@ -173,15 +183,35 @@ exports.createOrder =
         orsData
       );
 
-      if(!orsData.routes){
+     if(!orsData.routes){
 
-        return res.status(400)
-        .json({
+  console.log(
+    "ORS FAILED - USING FALLBACK"
+  );
 
-          message:
-            "Route not found"
-        });
-      }
+  console.log(
+  "CREATING ORDER..."
+);
+
+  const order =
+    await Order.create({
+
+      customer:req.user._id,
+
+      pickupLocation,
+
+      dropoffLocation,
+
+      items,
+
+      distance:5,
+
+      total:25
+    });
+
+  return res.status(201)
+  .json(order);
+}
 
       const meters =
 
@@ -211,7 +241,7 @@ exports.createOrder =
       const order =
         await Order.create({
 
-          customer:req.user.id,
+          customer:req.user._id,
 
           pickupLocation,
 
@@ -227,17 +257,17 @@ exports.createOrder =
       res.status(201)
       .json(order);
 
-    }catch(err){
+   }catch(err){
 
-      console.log(err);
+  console.log(err);
 
-      res.status(500)
-      .json({
+  res.status(500)
+  .json({
 
-        message:
-          "Failed to create order"
-      });
-    }
+    message:
+      err.message
+  });
+}
   };
 
 //UPDATE ORDER
@@ -246,6 +276,16 @@ exports.updateOrder =
   async(req,res)=>{
 
     try{
+
+      console.log(
+  "REQ USER:",
+  req.user
+);
+
+console.log(
+  "REQ BODY:",
+  req.body
+);
 
       const order =
         await Order.findById(
@@ -297,7 +337,10 @@ exports.updateOrder =
 
     }catch(err){
 
-      console.log(err);
+    coconsole.log(
+  "CREATE ORDER ERROR:",
+  err
+);nsole.log(err);
 
       res.status(500)
       .json({

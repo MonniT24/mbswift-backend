@@ -17,7 +17,7 @@ const {
   "../controllers/customerController"
 );
 
-// ================= GET LOGGED USER =================
+//GET LOGGED USER
 
 router.get(
   "/me",
@@ -25,7 +25,7 @@ router.get(
   getMe
 );
 
-// ================= GET CUSTOMER ORDERS =================
+//GET CUSTOMER ORDERS
 
 router.get(
   "/orders",
@@ -33,7 +33,7 @@ router.get(
   getMyOrders
 );
 
-// ================= CREATE ORDER =================
+//CREATE ORDER
 
 router.post(
   "/orders",

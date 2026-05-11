@@ -7,7 +7,7 @@ const bcrypt =
 const jwt =
   require("jsonwebtoken");
 
-// ================= REGISTER =================
+//REGISTER 
 
 exports.register =
   async (
@@ -79,7 +79,7 @@ exports.register =
     }
   };
 
-// ================= LOGIN =================
+//LOGIN
 
 exports.login =
   async (
