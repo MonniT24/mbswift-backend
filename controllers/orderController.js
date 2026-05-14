@@ -22,26 +22,78 @@ exports.getOrders =
 
     try{
 
-      const orders =
-        await Order.find()
+      let orders;
 
-        .populate(
-          "customer",
-          "name phone"
-        )
+if(req.user.role === "customer"){
 
-        .populate(
-          "rider",
-          "name phone latitude longitude status"
-        )
+  orders =
+    await Order.find({
 
-        .sort({
-          createdAt:-1
-        });
+      customer:req.user._id
 
-      res.json(
-        orders
-      );
+    })
+
+    .populate(
+      "customer",
+      "name phone"
+    )
+
+    .populate(
+      "rider",
+      "name phone latitude longitude status"
+    )
+
+    .sort({
+      createdAt:-1
+    });
+
+}else if(req.user.role === "rider"){
+
+  orders =
+    await Order.find({
+
+      $or:[
+        { rider:req.user._id },
+        { status:"pending" }
+      ]
+
+    })
+
+    .populate(
+      "customer",
+      "name phone"
+    )
+
+    .populate(
+      "rider",
+      "name phone latitude longitude status"
+    )
+
+    .sort({
+      createdAt:-1
+    });
+
+}else{
+
+  orders =
+    await Order.find()
+
+    .populate(
+      "customer",
+      "name phone"
+    )
+
+    .populate(
+      "rider",
+      "name phone latitude longitude status"
+    )
+
+    .sort({
+      createdAt:-1
+    });
+}
+
+res.json(orders);
 
     }catch(err){
 
@@ -76,164 +128,18 @@ exports.createOrder =
 
       } = req.body;
 
-      //GET PICKUP LOCATION
+            const km =
 
-      const pickupRes =
-        await fetch(
-
-          `https://nominatim.openstreetmap.org/search?format=json&q=${pickupLocation}, Accra, Ghana`
-        );
-
-      const pickupData =
-        await pickupRes.json();
-
-      //GET DROPOFF LOCATION
-
-      const dropoffRes =
-        await fetch(
-
-          `https://nominatim.openstreetmap.org/search?format=json&q=${dropoffLocation}, Accra, Ghana`
-        );
-
-      const dropoffData =
-        await dropoffRes.json();
-
-      if(
-
-        !pickupData.length ||
-
-        !dropoffData.length
-
-      ){
-
-        return res.status(400)
-        .json({
-
-          message:
-            "Location not found"
-        });
-      }
-
-      //COORDINATES
-
-      const lat1 =
-        parseFloat(
-          pickupData[0].lat
-        );
-
-      const lon1 =
-        parseFloat(
-          pickupData[0].lon
-        );
-
-      const lat2 =
-        parseFloat(
-          dropoffData[0].lat
-        );
-
-      const lon2 =
-        parseFloat(
-          dropoffData[0].lon
-        );
-
-      //ROAD DISTANCE
-
-      const orsRes =
-        await fetch(
-
-          "https://api.openrouteservice.org/v2/directions/driving-car",
-
-          {
-
-            method:"POST",
-
-            headers:{
-
-              "Content-Type":
-                "application/json",
-
-              Authorization:
-                "Bearer eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjI2OGMyNGU0YjkwYzRjMDk4ZmVjNzlmMzNlMjA1NTYwIiwiaCI6Im11cm11cjY0In0="
-            },
-
-            body:JSON.stringify({
-
-              coordinates:[
-
-                [lon1,lat1],
-
-                [lon2,lat2]
-              ],
-
-              instructions:false
-            })
-          }
-        );
-
-        console.log(
-  "ORS STATUS:",
-  orsRes.status
-);
-
-      const orsData =
-        await orsRes.json();
-
-      console.log(
-        "ORS:",
-        orsData
-      );
-
-     if(!orsData.routes){
-
-  console.log(
-    "ORS FAILED - USING FALLBACK"
-  );
-
-  console.log(
-  "CREATING ORDER..."
-);
-
-  const order =
-    await Order.create({
-
-      customer:req.user._id,
-
-      pickupLocation,
-
-      dropoffLocation,
-
-      items,
-
-      distance:5,
-
-      total:25
-    });
-
-  return res.status(201)
-  .json(order);
-}
-
-      const meters =
-
-        orsData.routes[0]
-        .summary.distance;
-
-      const km =
         Number(
-
-          (meters / 1000)
-          .toFixed(1)
-
+          (
+            Math.random() * 12 + 2
+          ).toFixed(1)
         );
-
-      //PRICE
 
       const amount =
 
         Math.ceil(
-
-          3 + (km * 0.5)
-
+          km * 5
         );
 
       //CREATE ORDER
@@ -337,10 +243,7 @@ console.log(
 
     }catch(err){
 
-    coconsole.log(
-  "CREATE ORDER ERROR:",
-  err
-);nsole.log(err);
+    console.log(err);
 
       res.status(500)
       .json({
@@ -418,10 +321,7 @@ exports.sendMessage =
           "name phone"
         )
 
-        .populate(
-          "rider",
-          "name phone latitude longitude status"
-        );
+        .populate( "rider", "name phone latitude longitude status" );
 
       res.json(
         updated
