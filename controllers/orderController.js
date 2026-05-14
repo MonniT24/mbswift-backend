@@ -52,12 +52,15 @@ if(req.user.role === "customer"){
   orders =
     await Order.find({
 
-      $or:[
-        { rider:req.user._id },
-        { status:"pending" }
-      ]
+  $or:[
 
-    })
+    { status:"pending" },
+
+    { rider:req.user._id }
+
+  ]
+
+})
 
     .populate(
       "customer",
