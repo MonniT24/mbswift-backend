@@ -161,3 +161,74 @@ exports.getMe =
       });
     }
   };
+
+  //UPDATE CUSTOMER PROFILE
+
+exports.updateProfile =
+  async (
+    req,
+    res
+  ) => {
+
+    try{
+
+      const user =
+        await User.findById(
+          req.user._id
+        );
+
+      if(!user){
+
+        return res.status(404).json({
+          message:"User not found"
+        });
+      }
+
+      user.name =
+        req.body.name ||
+        user.name;
+
+      user.email =
+        req.body.email ||
+        user.email;
+
+      user.phone =
+        req.body.phone ||
+        user.phone;
+
+      user.address =
+        req.body.address ||
+        user.address;
+
+      user.dob =
+        req.body.dob ||
+        user.dob;
+
+      user.gender =
+        req.body.gender ||
+        user.gender;
+
+      user.emergencyContact =
+        req.body.emergencyContact ||
+        user.emergencyContact;
+
+      await user.save();
+
+      res.json({
+
+        message:
+          "Profile updated successfully",
+
+        user
+
+      });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500).json({
+        message:err.message
+      });
+    }
+  };

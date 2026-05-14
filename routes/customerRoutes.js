@@ -11,7 +11,8 @@ const {
 
   createOrder,
   getMyOrders,
-  getMe
+  getMe,
+  updateProfile
 
 } = require(
   "../controllers/customerController"
@@ -31,6 +32,14 @@ router.get(
   "/orders",
   authMiddleware,
   getMyOrders
+);
+
+//UPDATE CUSTOMER PROFILE
+
+router.put(
+  "/profile",
+  authMiddleware,
+  updateProfile
 );
 
 //CREATE ORDER
