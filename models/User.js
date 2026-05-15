@@ -38,35 +38,36 @@ emergencyContact:{
       },
 
       role:{
-        type:String,
+  type:String,
 
-        profileImage:{
-       type:String,
-       default:""
-       },
+  enum:[
+    "customer",
+    "rider",
+    "admin"
+  ],
 
-        enum:[
-          "customer",
-          "rider",
-          "admin"
-        ],
+  default:"customer"
+},
 
-        default:"customer"
-      },
+profileImage:{
+  type:String,
+  default:""
+},
 
       //RIDER STATUS
 
       status:{
-        type:String,
+  type:String,
 
-        enum:[
-          "available",
-          "busy",
-          "offline"
-        ],
+  enum:[
+    "available",
+    "busy",
+    "offline",
+    "suspended"
+  ],
 
-        default:"available"
-      },
+  default:"available"
+},
 
       //LIVE LOCATION
 

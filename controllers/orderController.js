@@ -223,14 +223,14 @@ exports.updateOrder =
     try{
 
       console.log(
-  "REQ USER:",
-  req.user
-);
+        "REQ USER:",
+        req.user
+      );
 
-console.log(
-  "REQ BODY:",
-  req.body
-);
+      console.log(
+        "REQ BODY:",
+        req.body
+      );
 
       const order =
         await Order.findById(
@@ -241,9 +241,18 @@ console.log(
 
         return res.status(404)
         .json({
+          message:"Order not found"
+        });
+      }
 
-          message:
-            "Order not found"
+      if(
+        req.user.role === "rider" &&
+        req.user.status === "suspended"
+      ){
+
+        return res.status(403)
+        .json({
+          message:"Your rider account has been suspended. You cannot accept or update deliveries."
         });
       }
 
@@ -282,17 +291,14 @@ console.log(
 
     }catch(err){
 
-    console.log(err);
+      console.log(err);
 
       res.status(500)
       .json({
-
-        message:
-          err.message
+        message:err.message
       });
     }
   };
-
 //SEND MESSAGE
 
 exports.sendMessage =

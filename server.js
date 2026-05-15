@@ -116,6 +116,9 @@ const customerRoutes =
 const riderRoutes =
   require("./routes/riderRoutes");
 
+  const adminRoutes =
+  require("./routes/adminRoutes");
+
 
 app.use(
   "/api/auth",
@@ -135,6 +138,11 @@ app.use(
 app.use(
   "/api/rider",
   riderRoutes
+);
+
+app.use(
+  "/api/admin",
+  adminRoutes
 );
 
 
