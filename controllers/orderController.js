@@ -116,10 +116,12 @@ exports.createOrder =
 
     try{
 
+      console.log("✅ NEW CREATE ORDER CODE IS RUNNING");
+
       console.log(
-  "BODY:",
-  req.body
-);
+        "BODY:",
+        req.body
+      );
 
       const {
 
@@ -127,25 +129,30 @@ exports.createOrder =
 
         dropoffLocation,
 
+        distance,
+
+        deliveryTime,
+
+        total,
+
         items
 
       } = req.body;
 
-            const km =
+      if(
+        !pickupLocation ||
+        !dropoffLocation ||
+        !distance ||
+        !total
+      ){
 
-        Number(
-          (
-            Math.random() * 12 + 2
-          ).toFixed(1)
-        );
+        return res.status(400)
+        .json({
 
-      const amount =
-
-        Math.ceil(
-          km * 5
-        );
-
-      //CREATE ORDER
+          message:
+            "Pickup, dropoff, distance and total are required"
+        });
+      }
 
       const order =
         await Order.create({
@@ -158,25 +165,54 @@ exports.createOrder =
 
           items,
 
-          distance:km,
+          distance:Number(distance),
 
-          total:amount
+          deliveryTime,
+
+          total:Number(total),
+
+          status:"pending"
         });
 
+      const created =
+        await Order.findById(
+          order._id
+        )
+
+        .populate(
+          "customer",
+          "name phone"
+        )
+
+        .populate(
+          "rider",
+          "name phone latitude longitude status"
+        );
+
+      const io =
+        req.app.get("io");
+
+      if(io){
+
+        io.emit(
+          "orderUpdated"
+        );
+      }
+
       res.status(201)
-      .json(order);
+      .json(created);
 
-   }catch(err){
+    }catch(err){
 
-  console.log(err);
+      console.log(err);
 
-  res.status(500)
-  .json({
+      res.status(500)
+      .json({
 
-    message:
-      err.message
-  });
-}
+        message:
+          err.message
+      });
+    }
   };
 
 //UPDATE ORDER
