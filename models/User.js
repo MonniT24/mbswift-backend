@@ -22,6 +22,16 @@ const userSchema =
         required:true
       },
 
+      dob:{
+  type:String,
+  default:""
+},
+
+emergencyContact:{
+  type:String,
+  default:""
+},
+
       password:{
         type:String,
         required:true

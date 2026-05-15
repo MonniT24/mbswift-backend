@@ -83,3 +83,55 @@ exports.getAllRiders =
       });
     }
   };
+
+  //UPDATE RIDER PROFILE
+
+exports.updateRiderProfile =
+  async (
+    req,
+    res
+  ) => {
+
+    try{
+
+      const rider =
+        await User.findById(
+          req.user._id
+        );
+
+      if(!rider){
+
+        return res.status(404).json({
+          message:"Rider not found"
+        });
+      }
+
+      rider.dob =
+        req.body.dob ||
+        rider.dob;
+
+      rider.emergencyContact =
+        req.body.emergencyContact ||
+        rider.emergencyContact;
+
+      await rider.save();
+
+      const updatedRider =
+        await User.findById(
+          req.user._id
+        ).select("-password");
+
+      res.json({
+        message:"Rider profile updated successfully",
+        user:updatedRider
+      });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500).json({
+        message:err.message
+      });
+    }
+  };

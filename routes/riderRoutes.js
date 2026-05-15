@@ -9,7 +9,8 @@ const authMiddleware =
 
 const {
   getMe,
-  getAllRiders
+  getAllRiders,
+  updateRiderProfile
 } = require(
   "../controllers/riderController"
 );
@@ -32,6 +33,15 @@ router.get(
   authMiddleware,
 
   getAllRiders
+);
+
+router.put(
+
+  "/profile",
+
+  authMiddleware,
+
+  updateRiderProfile
 );
 
 module.exports =
