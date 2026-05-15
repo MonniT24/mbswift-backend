@@ -40,6 +40,11 @@ emergencyContact:{
       role:{
         type:String,
 
+        profileImage:{
+       type:String,
+       default:""
+       },
+
         enum:[
           "customer",
           "rider",
