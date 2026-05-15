@@ -335,16 +335,35 @@ exports.sendMessage =
 
       if(order.rider){
 
-        io.to(
-          order.rider.toString()
-        ).emit(
-          "newMessage",
-          {
-            sender,
-            message:text
-          }
-        );
-      }
+  io.to(
+    order.rider.toString()
+  ).emit(
+    "newMessage",
+    {
+      type:"message",
+      orderId:order._id,
+      sender:sender,
+      message:text,
+      text:text
+    }
+  );
+}
+
+if(order.customer){
+
+  io.to(
+    order.customer.toString()
+  ).emit(
+    "newMessage",
+    {
+      type:"message",
+      orderId:order._id,
+      sender:sender,
+      message:text,
+      text:text
+    }
+  );
+}
 
       io.emit(
         "orderUpdated"
