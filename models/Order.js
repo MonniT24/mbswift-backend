@@ -6,7 +6,7 @@ const orderSchema =
 
     {
 
-      //CUSTOMER
+      // CUSTOMER
 
       customer:{
 
@@ -18,7 +18,7 @@ const orderSchema =
         required:true
       },
 
-      //RIDER
+      // RIDER
 
       rider:{
 
@@ -30,7 +30,7 @@ const orderSchema =
         default:null
       },
 
-      //LOCATIONS
+      // LOCATIONS
 
       pickupLocation:{
         type:String,
@@ -41,7 +41,8 @@ const orderSchema =
         type:String,
         required:true
       },
-      //ITEMS
+
+      // ITEMS
 
       items:[
 
@@ -53,7 +54,7 @@ const orderSchema =
         }
       ],
 
-      //PRICE
+      // PRICE
 
       distance:{
         type:Number,
@@ -65,9 +66,7 @@ const orderSchema =
         default:0
       },
 
-      //STATUS
-
-            //STATUS
+      // STATUS
 
       status:{
 
@@ -76,19 +75,55 @@ const orderSchema =
         enum:[
 
           "pending",
-
           "accepted",
-
           "picked",
-
           "delivering",
-
           "delivered",
-
           "cancelled"
         ],
 
         default:"pending"
+      },
+
+      // FRAUD / CANCEL MONITORING
+
+      cancelCount:{
+        type:Number,
+        default:0
+      },
+
+      customerCancelCount:{
+        type:Number,
+        default:0
+      },
+
+      riderCancelCount:{
+        type:Number,
+        default:0
+      },
+
+      cancelReason:{
+        type:String,
+        default:""
+      },
+
+      cancelledBy:{
+
+        type:String,
+
+        enum:[
+          "",
+          "customer",
+          "rider",
+          "admin"
+        ],
+
+        default:""
+      },
+
+      flagged:{
+        type:Boolean,
+        default:false
       },
 
       // CHAT
@@ -111,20 +146,12 @@ const orderSchema =
           }
         }
       ]
-
-          },
+    },
 
     {
       timestamps:true
     }
   );
-
-module.exports =
-  mongoose.model(
-    "Order",
-    orderSchema
-  );
-  
 
 module.exports =
   mongoose.model(

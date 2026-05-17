@@ -256,6 +256,59 @@ exports.updateOrder =
         });
       }
 
+      // FRAUD / CANCEL TRACKING
+
+if(req.body.status === "cancelled"){
+
+  order.cancelCount += 1;
+
+  order.cancelReason =
+    req.body.cancelReason || "";
+
+  // CUSTOMER CANCEL
+
+  if(req.user.role === "customer"){
+
+    order.customerCancelCount += 1;
+
+    order.cancelledBy =
+      "customer";
+  }
+
+  // RIDER CANCEL
+
+  if(req.user.role === "rider"){
+
+    order.riderCancelCount += 1;
+
+    order.cancelledBy =
+      "rider";
+  }
+
+  // ADMIN CANCEL
+
+  if(req.user.role === "admin"){
+
+    order.cancelledBy =
+      "admin";
+  }
+
+  // AUTO FLAG
+
+  if(
+
+    order.cancelCount >= 2 ||
+
+    order.customerCancelCount >= 2 ||
+
+    order.riderCancelCount >= 2
+
+  ){
+
+    order.flagged = true;
+  }
+}
+
       Object.assign(
         order,
         req.body
