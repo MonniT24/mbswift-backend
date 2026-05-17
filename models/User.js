@@ -27,6 +27,22 @@ const userSchema =
   default:""
 },
 
+address:{
+  type:String,
+  default:""
+},
+
+gender:{
+  type:String,
+  enum:[
+    "",
+    "Female",
+    "Male",
+    "Prefer not to say"
+  ],
+  default:""
+},
+
 emergencyContact:{
   type:String,
   default:""
@@ -54,7 +70,12 @@ profileImage:{
   default:""
 },
 
-      //RIDER STATUS
+motorNumber:{
+  type:String,
+  default:""
+},
+
+//RIDER STATUS
 
       status:{
   type:String,

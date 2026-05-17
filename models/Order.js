@@ -66,6 +66,25 @@ const orderSchema =
         default:0
       },
 
+      // PAYMENT
+
+paymentMethod:{
+
+  type:String,
+
+  enum:[
+    "cash",
+    "momo"
+  ],
+
+  required:true
+},
+
+momoNumber:{
+  type:String,
+  default:""
+},
+
       // STATUS
 
       status:{

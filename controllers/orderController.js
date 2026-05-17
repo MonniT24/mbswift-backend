@@ -50,17 +50,22 @@ if(req.user.role === "customer"){
 }else if(req.user.role === "rider"){
 
   orders =
-    await Order.find({
+  await Order.find({
 
-  $or:[
+    $or:[
 
-    { status:"pending" },
+      { status:"pending" },
 
-    { rider:req.user._id }
+      {
+        rider:req.user._id,
+        status:{
+          $ne:"cancelled"
+        }
+      }
 
-  ]
+    ]
 
-})
+  })
 
     .populate(
       "customer",
@@ -125,26 +130,49 @@ exports.createOrder =
 
       const {
 
-        pickupLocation,
+  pickupLocation,
 
-        dropoffLocation,
+  dropoffLocation,
 
-        distance,
+  distance,
 
-        deliveryTime,
+  deliveryTime,
 
-        total,
+  total,
 
-        items
+  items,
 
-      } = req.body;
+  paymentMethod,
+
+  momoNumber
+
+} = req.body;
 
       if(
-        !pickupLocation ||
-        !dropoffLocation ||
-        !distance ||
-        !total
-      ){
+  !pickupLocation ||
+  !dropoffLocation ||
+  !distance ||
+  !total ||
+  !paymentMethod
+){
+
+  // MOMO VALIDATION
+
+if(
+
+  paymentMethod === "momo" &&
+
+  !momoNumber
+
+){
+
+  return res.status(400)
+  .json({
+
+    message:
+      "Mobile Money number is required"
+  });
+}
 
         return res.status(400)
         .json({
@@ -155,24 +183,31 @@ exports.createOrder =
       }
 
       const order =
-        await Order.create({
+  await Order.create({
 
-          customer:req.user._id,
+    customer:req.user._id,
 
-          pickupLocation,
+    pickupLocation,
 
-          dropoffLocation,
+    dropoffLocation,
 
-          items,
+    items,
 
-          distance:Number(distance),
+    distance:Number(distance),
 
-          deliveryTime,
+    deliveryTime,
 
-          total:Number(total),
+    total:Number(total),
 
-          status:"pending"
-        });
+    paymentMethod,
+
+    momoNumber:
+      paymentMethod === "momo"
+      ? momoNumber
+      : "",
+
+    status:"pending"
+  });
 
       const created =
         await Order.findById(

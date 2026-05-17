@@ -99,20 +99,31 @@ router.put(
         });
 
       const user =
-        await User.findByIdAndUpdate(
-          req.user._id,
-          {
-            profileImage:result.secure_url
-          },
-          {
-            new:true
-          }
-        ).select("-password");
+  await User.findById(
+    req.user._id
+  );
 
-      res.json({
-        message:"Profile image uploaded successfully",
-        user:user
-      });
+if(!user){
+
+  return res.status(404).json({
+    message:"User not found"
+  });
+}
+
+user.profileImage =
+  result.secure_url;
+
+await user.save();
+
+const updatedUser =
+  await User.findById(
+    req.user._id
+  ).select("-password");
+
+     res.json({
+  message:"Profile image uploaded successfully",
+  user:updatedUser
+});
 
     }catch(err){
 

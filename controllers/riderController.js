@@ -111,10 +111,14 @@ exports.updateRiderProfile =
         rider.dob;
 
       rider.emergencyContact =
-        req.body.emergencyContact ||
-        rider.emergencyContact;
+      req.body.emergencyContact ||
+      rider.emergencyContact;
 
-      await rider.save();
+     rider.motorNumber =
+     req.body.motorNumber ||
+     rider.motorNumber;
+
+     await rider.save();
 
       const updatedRider =
         await User.findById(

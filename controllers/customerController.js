@@ -185,34 +185,51 @@ exports.updateProfile =
       }
 
       user.name =
-        req.body.name ||
-        user.name;
+  req.body.name !== undefined
+  ? req.body.name
+  : user.name;
 
-      user.email =
-        req.body.email ||
-        user.email;
+user.email =
+  req.body.email !== undefined
+  ? req.body.email
+  : user.email;
 
-      user.phone =
-        req.body.phone ||
-        user.phone;
+user.phone =
+  req.body.phone !== undefined
+  ? req.body.phone
+  : user.phone;
 
-      user.address =
-        req.body.address ||
-        user.address;
+user.address =
+  req.body.address !== undefined
+  ? req.body.address
+  : user.address;
 
-      user.dob =
-        req.body.dob ||
-        user.dob;
+user.dob =
+  req.body.dob !== undefined
+  ? req.body.dob
+  : user.dob;
 
-      user.gender =
-        req.body.gender ||
-        user.gender;
+user.gender =
+  req.body.gender !== undefined
+  ? req.body.gender
+  : user.gender;
 
-      user.emergencyContact =
-        req.body.emergencyContact ||
-        user.emergencyContact;
+user.emergencyContact =
+  req.body.emergencyContact !== undefined
+  ? req.body.emergencyContact
+  : user.emergencyContact;
+
+  console.log(
+  "PROFILE UPDATE BODY:",
+  req.body
+);
 
       await user.save();
+
+      console.log(
+  "PROFILE SAVED USER:",
+  user
+);
 
       res.json({
 
