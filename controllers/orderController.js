@@ -65,7 +65,7 @@ if(req.user.role === "customer"){
 
     ]
 
-  })
+    })
 
     .populate(
       "customer",
@@ -387,6 +387,95 @@ if(req.body.status === "cancelled"){
       });
     }
   };
+
+// UPDATE ORDER TO PAID AFTER MOMO SUCCESS
+
+exports.updateOrderToPaid =
+  async(req,res)=>{
+
+    try{
+
+      const order =
+        await Order.findById(
+          req.params.id
+        );
+
+      if(!order){
+
+        return res.status(404)
+        .json({
+          message:"Order not found"
+        });
+      }
+
+      order.isPaid =
+        true;
+
+      order.paidAt =
+        Date.now();
+
+      order.paymentResult = {
+
+        reference:
+          req.body.reference || "",
+
+        status:
+          req.body.status || "",
+
+        channel:
+          req.body.channel || "",
+
+        amount:
+          req.body.amount || 0,
+
+        currency:
+          req.body.currency || ""
+      };
+
+      const updated =
+        await order.save();
+
+      const populatedOrder =
+        await Order.findById(
+          updated._id
+        )
+
+        .populate(
+          "customer",
+          "name phone"
+        )
+
+        .populate(
+          "rider",
+          "name phone latitude longitude status"
+        );
+
+      const io =
+        req.app.get("io");
+
+      if(io){
+
+        io.emit(
+          "orderUpdated"
+        );
+      }
+
+      res.json(
+        populatedOrder
+      );
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500)
+      .json({
+        message:"Could not update order payment",
+        error:err.message
+      });
+    }
+  };
+
 //SEND MESSAGE
 
 exports.sendMessage =

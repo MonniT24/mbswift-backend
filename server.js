@@ -103,52 +103,32 @@ app.use(cors());
 
 app.use(express.json());
 
+const paymentRoutes = require("./routes/paymentRoutes");
 
-const authRoutes =
-  require("./routes/authRoutes");
+const authRoutes = require("./routes/authRoutes");
 
-const orderRoutes =
-  require("./routes/orderRoutes");
+const orderRoutes =require("./routes/orderRoutes");
 
-const customerRoutes =
-  require("./routes/customerRoutes");
+const customerRoutes =require("./routes/customerRoutes");
 
-const riderRoutes =
-  require("./routes/riderRoutes");
+const riderRoutes =require("./routes/riderRoutes");
 
-  const adminRoutes =
-  require("./routes/adminRoutes");
+  const adminRoutes = require("./routes/adminRoutes");
 
+app.use("/api/auth",authRoutes);
 
-app.use(
-  "/api/auth",
-  authRoutes
-);
+app.use( "/api/orders",orderRoutes);
 
-app.use(
-  "/api/orders",
-  orderRoutes
-);
+app.use( "/api/customer", customerRoutes);
 
-app.use(
-  "/api/customer",
-  customerRoutes
-);
+app.use( "/api/rider",riderRoutes);
 
-app.use(
-  "/api/rider",
-  riderRoutes
-);
+app.use("/api/payments", paymentRoutes);
 
-app.use(
-  "/api/admin",
-  adminRoutes
-);
+app.use( "/api/admin", adminRoutes);
 
 
-app.get(
-  "/",
-  (req, res) => {
+app.get("/",(req, res) => {
 
     res.send(
       "MonniDrop API Running"

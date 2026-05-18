@@ -68,22 +68,59 @@ const orderSchema =
 
       // PAYMENT
 
-paymentMethod:{
+      paymentMethod:{
 
-  type:String,
+        type:String,
 
-  enum:[
-    "cash",
-    "momo"
-  ],
+        enum:[
+          "cash",
+          "momo"
+        ],
 
-  required:true
-},
+        required:true
+      },
 
-momoNumber:{
-  type:String,
-  default:""
-},
+      momoNumber:{
+        type:String,
+        default:""
+      },
+
+      isPaid:{
+        type:Boolean,
+        default:false
+      },
+
+      paidAt:{
+        type:Date
+      },
+
+      paymentResult:{
+
+        reference:{
+          type:String,
+          default:""
+        },
+
+        status:{
+          type:String,
+          default:""
+        },
+
+        channel:{
+          type:String,
+          default:""
+        },
+
+        amount:{
+          type:Number,
+          default:0
+        },
+
+        currency:{
+          type:String,
+          default:""
+        }
+      },
 
       // STATUS
 

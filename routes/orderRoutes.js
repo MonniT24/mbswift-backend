@@ -28,6 +28,14 @@ router.post(
   orderController.createOrder
 );
 
+//UPDATE ORDER TO PAID AFTER MOMO SUCCESS
+
+router.put(
+  "/:id/pay",
+  authMiddleware,
+  orderController.updateOrderToPaid
+);
+
 //UPDATE ORDER
 
 router.put(
