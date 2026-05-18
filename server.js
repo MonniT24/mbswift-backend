@@ -23,7 +23,7 @@ dotenv.config();
 
 
 
-const app =express();
+const app = express();
 
 
 const server =
@@ -72,15 +72,15 @@ io.on(
     );
 
     socket.on(
-  "riderLocation",
-  (data)=>{
+      "riderLocation",
+      (data) => {
 
-    io.emit(
-      "riderLocationUpdate",
-      data
+        io.emit(
+          "riderLocationUpdate",
+          data
+        );
+      }
     );
-  }
-);
 
     socket.on(
       "disconnect",
@@ -103,36 +103,75 @@ app.use(cors());
 
 app.use(express.json());
 
-const paymentRoutes = require("./routes/paymentRoutes");
 
-const authRoutes = require("./routes/authRoutes");
+const paymentRoutes =
+  require("./routes/paymentRoutes");
 
-const orderRoutes =require("./routes/orderRoutes");
+const authRoutes =
+  require("./routes/authRoutes");
 
-const customerRoutes =require("./routes/customerRoutes");
+const orderRoutes =
+  require("./routes/orderRoutes");
 
-const riderRoutes =require("./routes/riderRoutes");
+const customerRoutes =
+  require("./routes/customerRoutes");
 
-  const adminRoutes = require("./routes/adminRoutes");
+const riderRoutes =
+  require("./routes/riderRoutes");
 
-app.use("/api/auth",authRoutes);
-
-app.use( "/api/orders",orderRoutes);
-
-app.use( "/api/customer", customerRoutes);
-
-app.use( "/api/rider",riderRoutes);
-
-app.use("/api/payments", paymentRoutes);
-
-app.use( "/api/admin", adminRoutes);
+const adminRoutes =
+  require("./routes/adminRoutes");
 
 
-app.get("/",(req, res) => {
+app.use(
+  "/api/auth",
+  authRoutes
+);
+
+app.use(
+  "/api/orders",
+  orderRoutes
+);
+
+app.use(
+  "/api/customer",
+  customerRoutes
+);
+
+app.use(
+  "/api/rider",
+  riderRoutes
+);
+
+app.use(
+  "/api/payments",
+  paymentRoutes
+);
+
+app.use(
+  "/api/admin",
+  adminRoutes
+);
+
+
+app.get(
+  "/",
+  (req, res) => {
 
     res.send(
       "MonniDrop API Running"
     );
+  }
+);
+
+
+app.get(
+  "/api/test-route",
+  (req, res) => {
+
+    res.json({
+      message: "Test route is working"
+    });
   }
 );
 
