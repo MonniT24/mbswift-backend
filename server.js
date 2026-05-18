@@ -164,18 +164,6 @@ app.get(
   }
 );
 
-
-app.get(
-  "/api/test-route",
-  (req, res) => {
-
-    res.json({
-      message: "Test route is working"
-    });
-  }
-);
-
-
 mongoose.connect(
   process.env.MONGO_URI
 )
