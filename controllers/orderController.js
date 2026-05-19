@@ -291,6 +291,67 @@ exports.updateOrder =
         });
       }
 
+      if(
+  req.user.role === "rider" &&
+  req.body.status === "accepted"
+){
+
+  const activeDelivery =
+    await Order.findOne({
+
+      rider:req.user._id,
+
+      status:{
+        $in:[
+          "accepted",
+          "picked",
+          "delivering"
+        ]
+      },
+
+      _id:{
+        $ne:order._id
+      }
+
+    });
+
+  if(activeDelivery){
+
+    return res.status(400)
+    .json({
+      message:
+        "You already have an active delivery. Complete it before accepting another order."
+    });
+  }
+
+  if(
+    order.rider &&
+    String(order.rider) !== String(req.user._id)
+  ){
+
+    return res.status(400)
+    .json({
+      message:
+        "This order has already been accepted by another rider."
+    });
+  }
+
+  if(order.status !== "pending"){
+
+    return res.status(400)
+    .json({
+      message:
+        "Only pending orders can be accepted."
+    });
+  }
+
+  req.body.rider =
+    req.user._id;
+
+  req.body.riderId =
+    req.user._id;
+}
+
       // FRAUD / CANCEL TRACKING
 
 if(req.body.status === "cancelled"){
