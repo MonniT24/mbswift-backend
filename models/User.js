@@ -70,6 +70,55 @@ profileImage:{
   default:""
 },
 
+customerSettings:{
+
+  phoneNumber:{
+    type:String,
+    default:""
+  },
+
+  email:{
+    type:String,
+    default:""
+  },
+
+  country:{
+    type:String,
+    default:"Ghana"
+  },
+
+  language:{
+    type:String,
+    default:"English"
+  },
+
+  currency:{
+    type:String,
+    default:"GHS"
+  },
+
+  paymentMethod:{
+    type:String,
+    default:""
+  },
+
+  twoFactorEnabled:{
+    type:Boolean,
+    default:false
+  },
+
+  googleConnected:{
+    type:Boolean,
+    default:false
+  },
+
+  facebookConnected:{
+    type:Boolean,
+    default:false
+  }
+
+},
+
 motorNumber:{
   type:String,
   default:""

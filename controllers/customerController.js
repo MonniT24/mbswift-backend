@@ -249,3 +249,137 @@ user.emergencyContact =
       });
     }
   };
+
+  
+//GET CUSTOMER SETTINGS
+
+exports.getCustomerSettings =
+  async (
+    req,
+    res
+  ) => {
+
+    try{
+
+      const user =
+        await User.findById(
+          req.user._id
+        ).select(
+          "customerSettings"
+        );
+
+      if(!user){
+
+        return res.status(404).json({
+          message:"User not found"
+        });
+      }
+
+      res.json({
+        settings:
+          user.customerSettings || {}
+      });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500).json({
+        message:err.message
+      });
+    }
+  };
+
+
+//UPDATE CUSTOMER SETTINGS
+
+exports.updateCustomerSettings =
+  async (
+    req,
+    res
+  ) => {
+
+    try{
+
+      const user =
+        await User.findById(
+          req.user._id
+        );
+
+      if(!user){
+
+        return res.status(404).json({
+          message:"User not found"
+        });
+      }
+
+      user.customerSettings = {
+
+        phoneNumber:
+          req.body.phoneNumber !== undefined
+          ? req.body.phoneNumber
+          : user.customerSettings?.phoneNumber || "",
+
+        email:
+          req.body.email !== undefined
+          ? req.body.email
+          : user.customerSettings?.email || "",
+
+        country:
+          req.body.country !== undefined
+          ? req.body.country
+          : user.customerSettings?.country || "Ghana",
+
+        language:
+          req.body.language !== undefined
+          ? req.body.language
+          : user.customerSettings?.language || "English",
+
+        currency:
+          req.body.currency !== undefined
+          ? req.body.currency
+          : user.customerSettings?.currency || "GHS",
+
+        paymentMethod:
+          req.body.paymentMethod !== undefined
+          ? req.body.paymentMethod
+          : user.customerSettings?.paymentMethod || "",
+
+        twoFactorEnabled:
+          req.body.twoFactorEnabled !== undefined
+          ? req.body.twoFactorEnabled
+          : user.customerSettings?.twoFactorEnabled || false,
+
+        googleConnected:
+          req.body.googleConnected !== undefined
+          ? req.body.googleConnected
+          : user.customerSettings?.googleConnected || false,
+
+        facebookConnected:
+          req.body.facebookConnected !== undefined
+          ? req.body.facebookConnected
+          : user.customerSettings?.facebookConnected || false
+
+      };
+
+      await user.save();
+
+      res.json({
+
+        message:
+          "Customer settings saved successfully",
+
+        settings:
+          user.customerSettings
+
+      });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500).json({
+        message:err.message
+      });
+    }
+  };
