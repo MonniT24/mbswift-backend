@@ -12,7 +12,7 @@ const orderController =
     "../controllers/orderController"
   );
 
-//GET ORDERS 
+// GET ORDERS 
 
 router.get(
   "/",
@@ -20,7 +20,7 @@ router.get(
   orderController.getOrders
 );
 
-//CREATE ORDER
+// CREATE ORDER
 
 router.post(
   "/",
@@ -28,7 +28,7 @@ router.post(
   orderController.createOrder
 );
 
-//UPDATE ORDER TO PAID AFTER MOMO SUCCESS
+// UPDATE ORDER TO PAID AFTER MOMO SUCCESS
 
 router.put(
   "/:id/pay",
@@ -36,7 +36,15 @@ router.put(
   orderController.updateOrderToPaid
 );
 
-//UPDATE ORDER
+// COMPLETE DELIVERY WITH CUSTOMER CODE
+
+router.put(
+  "/:id/complete-delivery",
+  authMiddleware,
+  orderController.completeDeliveryWithCode
+);
+
+// UPDATE ORDER
 
 router.put(
   "/:id",
@@ -44,7 +52,7 @@ router.put(
   orderController.updateOrder
 );
 
-//SEND MESSAGE
+// SEND MESSAGE
 
 router.post(
   "/:id/message",

@@ -49,16 +49,22 @@ const orderSchema =
         {
 
           description:{
-            type:String
+            type:String,
+            default:""
           }
         }
       ],
 
-      // PRICE
+      // PRICE / DELIVERY INFO
 
       distance:{
         type:Number,
         default:0
+      },
+
+      deliveryTime:{
+        type:String,
+        default:""
       },
 
       total:{
@@ -91,7 +97,8 @@ const orderSchema =
       },
 
       paidAt:{
-        type:Date
+        type:Date,
+        default:null
       },
 
       paymentResult:{
@@ -139,6 +146,23 @@ const orderSchema =
         ],
 
         default:"pending"
+      },
+
+      // DELIVERY VERIFICATION CODE
+
+      deliveryCode:{
+        type:String,
+        default:null
+      },
+
+      deliveryCodeVerified:{
+        type:Boolean,
+        default:false
+      },
+
+      deliveredAt:{
+        type:Date,
+        default:null
       },
 
       // FRAUD / CANCEL MONITORING
@@ -189,11 +213,13 @@ const orderSchema =
         {
 
           sender:{
-            type:String
+            type:String,
+            default:""
           },
 
           text:{
-            type:String
+            type:String,
+            default:""
           },
 
           createdAt:{

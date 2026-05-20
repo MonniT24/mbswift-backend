@@ -1,127 +1,141 @@
 const Order =
   require("../models/Order");
 
-const User =
-  require("../models/User");
+const generateDeliveryCode =
+  require("../utils/generateDeliveryCode");
 
-const fetch =
-  (...args)=>
+const sanitizeOrderForRider =
+  (order)=>{
 
-    import("node-fetch")
-    .then(({default:fetch})=>
-      fetch(...args)
-    );
+    if(!order){
+      return order;
+    }
 
-//GET ORDERS
+    const responseOrder =
+      order.toObject
+      ? order.toObject()
+      : {...order};
+
+    delete responseOrder.deliveryCode;
+
+    return responseOrder;
+  };
+
+// GET ORDERS
 
 exports.getOrders =
-  async (
+  async(
     req,
     res
-  ) => {
+  )=>{
 
     try{
 
       let orders;
 
-if(req.user.role === "customer"){
+      if(req.user.role === "customer"){
 
-  orders =
-    await Order.find({
+        orders =
+          await Order.find({
 
-      customer:req.user._id
+            customer:req.user._id
+          })
 
-    })
+          .populate(
+            "customer",
+            "name phone"
+          )
 
-    .populate(
-      "customer",
-      "name phone"
-    )
+          .populate(
+            "rider",
+            "name phone latitude longitude status"
+          )
 
-    .populate(
-      "rider",
-      "name phone latitude longitude status"
-    )
+          .sort({
+            createdAt:-1
+          });
 
-    .sort({
-      createdAt:-1
-    });
+      }else if(req.user.role === "rider"){
 
-}else if(req.user.role === "rider"){
+        orders =
+          await Order.find({
 
-  orders =
-  await Order.find({
+            $or:[
 
-    $or:[
+              {
+                status:"pending"
+              },
 
-      { status:"pending" },
+              {
+                rider:req.user._id,
+                status:{
+                  $ne:"cancelled"
+                }
+              }
+            ]
+          })
 
-      {
-        rider:req.user._id,
-        status:{
-          $ne:"cancelled"
-        }
+          .select("-deliveryCode")
+
+          .populate(
+            "customer",
+            "name phone"
+          )
+
+          .populate(
+            "rider",
+            "name phone latitude longitude status"
+          )
+
+          .sort({
+            createdAt:-1
+          });
+
+      }else{
+
+        orders =
+          await Order.find()
+
+          .populate(
+            "customer",
+            "name phone"
+          )
+
+          .populate(
+            "rider",
+            "name phone latitude longitude status"
+          )
+
+          .sort({
+            createdAt:-1
+          });
       }
 
-    ]
-
-    })
-
-    .populate(
-      "customer",
-      "name phone"
-    )
-
-    .populate(
-      "rider",
-      "name phone latitude longitude status"
-    )
-
-    .sort({
-      createdAt:-1
-    });
-
-}else{
-
-  orders =
-    await Order.find()
-
-    .populate(
-      "customer",
-      "name phone"
-    )
-
-    .populate(
-      "rider",
-      "name phone latitude longitude status"
-    )
-
-    .sort({
-      createdAt:-1
-    });
-}
-
-res.json(orders);
+      res.json(
+        orders
+      );
 
     }catch(err){
 
       console.log(err);
 
-      res.status(500).json({
-        message:
-          err.message
+      res.status(500)
+      .json({
+        message:err.message
       });
     }
   };
 
-//CREATE ORDER
+// CREATE ORDER
 
 exports.createOrder =
   async(req,res)=>{
 
     try{
 
-      console.log("✅ NEW CREATE ORDER CODE IS RUNNING");
+      console.log(
+        "✅ NEW CREATE ORDER CODE IS RUNNING"
+      );
 
       console.log(
         "BODY:",
@@ -129,85 +143,78 @@ exports.createOrder =
       );
 
       const {
-
-  pickupLocation,
-
-  dropoffLocation,
-
-  distance,
-
-  deliveryTime,
-
-  total,
-
-  items,
-
-  paymentMethod,
-
-  momoNumber
-
-} = req.body;
+        pickupLocation,
+        dropoffLocation,
+        distance,
+        deliveryTime,
+        total,
+        items,
+        paymentMethod,
+        momoNumber
+      } = req.body;
 
       if(
-  !pickupLocation ||
-  !dropoffLocation ||
-  !distance ||
-  !total ||
-  !paymentMethod
-){
-
-  // MOMO VALIDATION
-
-if(
-
-  paymentMethod === "momo" &&
-
-  !momoNumber
-
-){
-
-  return res.status(400)
-  .json({
-
-    message:
-      "Mobile Money number is required"
-  });
-}
+        !pickupLocation ||
+        !dropoffLocation ||
+        !distance ||
+        !total ||
+        !paymentMethod
+      ){
 
         return res.status(400)
         .json({
-
           message:
             "Pickup, dropoff, distance and total are required"
         });
       }
 
+      if(
+        paymentMethod === "momo" &&
+        !momoNumber
+      ){
+
+        return res.status(400)
+        .json({
+          message:
+            "Mobile Money number is required"
+        });
+      }
+
       const order =
-  await Order.create({
+        await Order.create({
 
-    customer:req.user._id,
+          customer:req.user._id,
 
-    pickupLocation,
+          pickupLocation,
 
-    dropoffLocation,
+          dropoffLocation,
 
-    items,
+          items,
 
-    distance:Number(distance),
+          distance:Number(distance),
 
-    deliveryTime,
+          deliveryTime,
 
-    total:Number(total),
+          total:Number(total),
 
-    paymentMethod,
+          paymentMethod,
 
-    momoNumber:
-      paymentMethod === "momo"
-      ? momoNumber
-      : "",
+          momoNumber:
+            paymentMethod === "momo"
+            ? momoNumber
+            : "",
 
-    status:"pending"
-  });
+          status:"pending",
+
+          deliveryCode:
+            generateDeliveryCode(),
+
+          deliveryCodeVerified:
+            false,
+
+          deliveredAt:
+            null
+        });
 
       const created =
         await Order.findById(
@@ -235,7 +242,9 @@ if(
       }
 
       res.status(201)
-      .json(created);
+      .json(
+        created
+      );
 
     }catch(err){
 
@@ -243,14 +252,12 @@ if(
 
       res.status(500)
       .json({
-
-        message:
-          err.message
+        message:err.message
       });
     }
   };
 
-//UPDATE ORDER
+// UPDATE ORDER
 
 exports.updateOrder =
   async(req,res)=>{
@@ -287,123 +294,124 @@ exports.updateOrder =
 
         return res.status(403)
         .json({
-          message:"Your rider account has been suspended. You cannot accept or update deliveries."
+          message:
+            "Your rider account has been suspended. You cannot accept or update deliveries."
         });
       }
 
       if(
-  req.user.role === "rider" &&
-  req.body.status === "accepted"
-){
+        req.user.role === "rider" &&
+        req.body.status === "delivered"
+      ){
 
-  const activeDelivery =
-    await Order.findOne({
-
-      rider:req.user._id,
-
-      status:{
-        $in:[
-          "accepted",
-          "picked",
-          "delivering"
-        ]
-      },
-
-      _id:{
-        $ne:order._id
+        return res.status(400)
+        .json({
+          message:
+            "Enter the customer delivery code to complete this delivery."
+        });
       }
 
-    });
+      if(
+        req.user.role === "rider" &&
+        req.body.status === "accepted"
+      ){
 
-  if(activeDelivery){
+        const activeDelivery =
+          await Order.findOne({
 
-    return res.status(400)
-    .json({
-      message:
-        "You already have an active delivery. Complete it before accepting another order."
-    });
-  }
+            rider:req.user._id,
 
-  if(
-    order.rider &&
-    String(order.rider) !== String(req.user._id)
-  ){
+            status:{
+              $in:[
+                "accepted",
+                "picked",
+                "delivering"
+              ]
+            },
 
-    return res.status(400)
-    .json({
-      message:
-        "This order has already been accepted by another rider."
-    });
-  }
+            _id:{
+              $ne:order._id
+            }
+          });
 
-  if(order.status !== "pending"){
+        if(activeDelivery){
 
-    return res.status(400)
-    .json({
-      message:
-        "Only pending orders can be accepted."
-    });
-  }
+          return res.status(400)
+          .json({
+            message:
+              "You already have an active delivery. Complete it before accepting another order."
+          });
+        }
 
-  req.body.rider =
-    req.user._id;
+        if(
+          order.rider &&
+          String(order.rider) !== String(req.user._id)
+        ){
 
-  req.body.riderId =
-    req.user._id;
-}
+          return res.status(400)
+          .json({
+            message:
+              "This order has already been accepted by another rider."
+          });
+        }
+
+        if(order.status !== "pending"){
+
+          return res.status(400)
+          .json({
+            message:
+              "Only pending orders can be accepted."
+          });
+        }
+
+        req.body.rider =
+          req.user._id;
+
+        req.body.riderId =
+          req.user._id;
+      }
 
       // FRAUD / CANCEL TRACKING
 
-if(req.body.status === "cancelled"){
+      if(req.body.status === "cancelled"){
 
-  order.cancelCount += 1;
+        order.cancelCount += 1;
 
-  order.cancelReason =
-    req.body.cancelReason || "";
+        order.cancelReason =
+          req.body.cancelReason || "";
 
-  // CUSTOMER CANCEL
+        if(req.user.role === "customer"){
 
-  if(req.user.role === "customer"){
+          order.customerCancelCount += 1;
 
-    order.customerCancelCount += 1;
+          order.cancelledBy =
+            "customer";
+        }
 
-    order.cancelledBy =
-      "customer";
-  }
+        if(req.user.role === "rider"){
 
-  // RIDER CANCEL
+          order.riderCancelCount += 1;
 
-  if(req.user.role === "rider"){
+          order.cancelledBy =
+            "rider";
+        }
 
-    order.riderCancelCount += 1;
+        if(req.user.role === "admin"){
 
-    order.cancelledBy =
-      "rider";
-  }
+          order.cancelledBy =
+            "admin";
+        }
 
-  // ADMIN CANCEL
+        if(
+          order.cancelCount >= 2 ||
+          order.customerCancelCount >= 2 ||
+          order.riderCancelCount >= 2
+        ){
 
-  if(req.user.role === "admin"){
-
-    order.cancelledBy =
-      "admin";
-  }
-
-  // AUTO FLAG
-
-  if(
-
-    order.cancelCount >= 2 ||
-
-    order.customerCancelCount >= 2 ||
-
-    order.riderCancelCount >= 2
-
-  ){
-
-    order.flagged = true;
-  }
-}
+          order.flagged =
+            true;
+        }
+      }
 
       Object.assign(
         order,
@@ -430,9 +438,21 @@ if(req.body.status === "cancelled"){
       const io =
         req.app.get("io");
 
-      io.emit(
-        "orderUpdated"
-      );
+      if(io){
+
+        io.emit(
+          "orderUpdated"
+        );
+      }
+
+      if(req.user.role === "rider"){
+
+        return res.json(
+          sanitizeOrderForRider(
+            updated
+          )
+        );
+      }
 
       res.json(
         updated
@@ -537,13 +557,10 @@ exports.updateOrderToPaid =
     }
   };
 
-//SEND MESSAGE
+// COMPLETE DELIVERY WITH CUSTOMER CODE
 
-exports.sendMessage =
-  async (
-    req,
-    res
-  ) => {
+exports.completeDeliveryWithCode =
+  async(req,res)=>{
 
     try{
 
@@ -554,64 +571,78 @@ exports.sendMessage =
 
       if(!order){
 
-        return res.status(404).json({
-          message:
-            "Order not found"
+        return res.status(404)
+        .json({
+          message:"Order not found"
         });
       }
 
-      const {
-        sender,
-        text
-      } = req.body;
+      if(req.user.role !== "rider"){
 
-      order.messages.push({
+        return res.status(403)
+        .json({
+          message:"Only riders can complete deliveries"
+        });
+      }
 
-        sender,
-        text,
-        createdAt:new Date()
-      });
+      if(
+        !order.rider ||
+        String(order.rider) !== String(req.user._id)
+      ){
+
+        return res.status(403)
+        .json({
+          message:"You are not assigned to this order"
+        });
+      }
+
+      if(order.status === "delivered"){
+
+        return res.status(400)
+        .json({
+          message:"This order has already been delivered"
+        });
+      }
+
+      const deliveryCode =
+        String(
+          req.body.deliveryCode || ""
+        ).trim();
+
+      if(!deliveryCode){
+
+        return res.status(400)
+        .json({
+          message:"Delivery code is required"
+        });
+      }
+
+      if(!/^\d{4}$/.test(deliveryCode)){
+
+        return res.status(400)
+        .json({
+          message:"Delivery code must be 4 digits"
+        });
+      }
+
+      if(order.deliveryCode !== deliveryCode){
+
+        return res.status(400)
+        .json({
+          message:"Invalid delivery code"
+        });
+      }
+
+      order.status =
+        "delivered";
+
+      order.deliveryCodeVerified =
+        true;
+
+      order.deliveredAt =
+        new Date();
 
       await order.save();
-
-      const io =
-        req.app.get("io");
-
-      if(order.rider){
-
-        io.to(
-          order.rider.toString()
-        ).emit(
-          "newMessage",
-          {
-            type:"message",
-            orderId:order._id,
-            sender:sender,
-            message:text,
-            text:text
-          }
-        );
-      }
-
-      if(order.customer){
-
-        io.to(
-          order.customer.toString()
-        ).emit(
-          "newMessage",
-          {
-            type:"message",
-            orderId:order._id,
-            sender:sender,
-            message:text,
-            text:text
-          }
-        );
-      }
-
-      io.emit(
-        "orderUpdated"
-      );
 
       const updated =
         await Order.findById(
@@ -628,6 +659,140 @@ exports.sendMessage =
           "name phone latitude longitude status"
         );
 
+      const io =
+        req.app.get("io");
+
+      if(io){
+
+        io.emit(
+          "orderUpdated"
+        );
+      }
+
+      res.json({
+        message:"Delivery completed successfully",
+        order:sanitizeOrderForRider(
+          updated
+        )
+      });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500)
+      .json({
+        message:err.message
+      });
+    }
+  };
+
+// SEND MESSAGE
+
+exports.sendMessage =
+  async(
+    req,
+    res
+  )=>{
+
+    try{
+
+      const order =
+        await Order.findById(
+          req.params.id
+        );
+
+      if(!order){
+
+        return res.status(404)
+        .json({
+          message:"Order not found"
+        });
+      }
+
+      const {
+        sender,
+        text
+      } = req.body;
+
+      order.messages.push({
+
+        sender,
+
+        text,
+
+        createdAt:
+          new Date()
+      });
+
+      await order.save();
+
+      const io =
+        req.app.get("io");
+
+      if(io && order.rider){
+
+        io.to(
+          order.rider.toString()
+        ).emit(
+          "newMessage",
+          {
+            type:"message",
+            orderId:order._id,
+            sender:sender,
+            message:text,
+            text:text
+          }
+        );
+      }
+
+      if(io && order.customer){
+
+        io.to(
+          order.customer.toString()
+        ).emit(
+          "newMessage",
+          {
+            type:"message",
+            orderId:order._id,
+            sender:sender,
+            message:text,
+            text:text
+          }
+        );
+      }
+
+      if(io){
+
+        io.emit(
+          "orderUpdated"
+        );
+      }
+
+      const updated =
+        await Order.findById(
+          order._id
+        )
+
+        .populate(
+          "customer",
+          "name phone"
+        )
+
+        .populate(
+          "rider",
+          "name phone latitude longitude status"
+        );
+
+      if(req.user.role === "rider"){
+
+        return res.json(
+          sanitizeOrderForRider(
+            updated
+          )
+        );
+      }
+
       res.json(
         updated
       );
@@ -636,9 +801,9 @@ exports.sendMessage =
 
       console.log(err);
 
-      res.status(500).json({
-        message:
-          err.message
+      res.status(500)
+      .json({
+        message:err.message
       });
     }
   };
