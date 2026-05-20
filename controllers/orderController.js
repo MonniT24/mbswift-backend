@@ -307,7 +307,7 @@ exports.updateOrder =
         return res.status(400)
         .json({
           message:
-            "Enter the customer delivery code to complete this delivery."
+            "Enter the customer OTP number to complete this delivery."
         });
       }
 
@@ -613,7 +613,7 @@ exports.completeDeliveryWithCode =
 
         return res.status(400)
         .json({
-          message:"Delivery code is required"
+          message:"OTP number is required"
         });
       }
 
@@ -621,7 +621,7 @@ exports.completeDeliveryWithCode =
 
         return res.status(400)
         .json({
-          message:"Delivery code must be 4 digits"
+          message:"OTP number must be 4 digits"
         });
       }
 
@@ -629,7 +629,7 @@ exports.completeDeliveryWithCode =
 
         return res.status(400)
         .json({
-          message:"Invalid delivery code"
+          message:"Invalid OTP number"
         });
       }
 
