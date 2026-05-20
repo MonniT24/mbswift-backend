@@ -383,3 +383,67 @@ exports.updateCustomerSettings =
       });
     }
   };
+
+  // UPDATE CUSTOMER PROFILE IMAGE
+exports.updateCustomerProfileImage =
+  async(req,res)=>{
+
+    try{
+
+      const {
+        profileImage
+      } = req.body;
+
+      if(!profileImage){
+
+        return res.status(400)
+        .json({
+          message:"Profile image is required"
+        });
+      }
+
+      if(
+        !profileImage.startsWith(
+          "data:image/"
+        )
+      ){
+
+        return res.status(400)
+        .json({
+          message:"Invalid image format"
+        });
+      }
+
+      const user =
+        await User.findById(
+          req.user._id
+        );
+
+      if(!user){
+
+        return res.status(404)
+        .json({
+          message:"User not found"
+        });
+      }
+
+      user.profileImage =
+        profileImage;
+
+      await user.save();
+
+      res.json({
+        message:"Profile image updated successfully",
+        user
+      });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500)
+      .json({
+        message:"Server error while saving profile image"
+      });
+    }
+  };
