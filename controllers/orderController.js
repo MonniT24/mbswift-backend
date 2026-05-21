@@ -21,6 +21,23 @@ const sanitizeOrderForRider =
     return responseOrder;
   };
 
+const isBlockedRider =
+  (user)=>{
+
+    return (
+      user?.role === "rider"
+      &&
+      (
+        user?.status === "suspended" ||
+        user?.riderAccountStatus === "temporary_suspended" ||
+        user?.riderAccountStatus === "permanent_suspended"
+      )
+    );
+  };
+
+const blockedRiderMessage =
+  "Your rider account is suspended. You can login, but you cannot view, accept, update, or complete delivery orders.";
+
 // GET ORDERS
 
 exports.getOrders =
@@ -48,7 +65,7 @@ exports.getOrders =
 
           .populate(
             "rider",
-            "name phone latitude longitude status"
+            "name phone latitude longitude status riderAccountStatus riderStatusReason"
           )
 
           .sort({
@@ -56,6 +73,17 @@ exports.getOrders =
           });
 
       }else if(req.user.role === "rider"){
+
+        if(
+          isBlockedRider(
+            req.user
+          )
+        ){
+
+          return res.json(
+            []
+          );
+        }
 
         orders =
           await Order.find({
@@ -84,7 +112,7 @@ exports.getOrders =
 
           .populate(
             "rider",
-            "name phone latitude longitude status"
+            "name phone latitude longitude status riderAccountStatus riderStatusReason"
           )
 
           .sort({
@@ -103,7 +131,7 @@ exports.getOrders =
 
           .populate(
             "rider",
-            "name phone latitude longitude status"
+            "name phone latitude longitude status riderAccountStatus riderStatusReason"
           )
 
           .sort({
@@ -228,7 +256,7 @@ exports.createOrder =
 
         .populate(
           "rider",
-          "name phone latitude longitude status"
+          "name phone latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -288,14 +316,14 @@ exports.updateOrder =
       }
 
       if(
-        req.user.role === "rider" &&
-        req.user.status === "suspended"
+        isBlockedRider(
+          req.user
+        )
       ){
 
         return res.status(403)
         .json({
-          message:
-            "Your rider account has been suspended. You cannot accept or update deliveries."
+          message:blockedRiderMessage
         });
       }
 
@@ -432,7 +460,7 @@ exports.updateOrder =
 
         .populate(
           "rider",
-          "name phone latitude longitude status"
+          "name phone latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -528,7 +556,7 @@ exports.updateOrderToPaid =
 
         .populate(
           "rider",
-          "name phone latitude longitude status"
+          "name phone latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -582,6 +610,18 @@ exports.completeDeliveryWithCode =
         return res.status(403)
         .json({
           message:"Only riders can complete deliveries"
+        });
+      }
+
+      if(
+        isBlockedRider(
+          req.user
+        )
+      ){
+
+        return res.status(403)
+        .json({
+          message:blockedRiderMessage
         });
       }
 
@@ -656,7 +696,7 @@ exports.completeDeliveryWithCode =
 
         .populate(
           "rider",
-          "name phone latitude longitude status"
+          "name phone latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -707,6 +747,18 @@ exports.sendMessage =
         return res.status(404)
         .json({
           message:"Order not found"
+        });
+      }
+
+      if(
+        isBlockedRider(
+          req.user
+        )
+      ){
+
+        return res.status(403)
+        .json({
+          message:blockedRiderMessage
         });
       }
 
@@ -781,7 +833,7 @@ exports.sendMessage =
 
         .populate(
           "rider",
-          "name phone latitude longitude status"
+          "name phone latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       if(req.user.role === "rider"){

@@ -9,9 +9,6 @@ const mongoose =
 const cors =
   require("cors");
 
-const dotenv =
-  require("dotenv");
-
 const http =
   require("http");
 
@@ -19,11 +16,8 @@ const { Server } =
   require("socket.io");
 
 
-dotenv.config();
-
-
-
-const app = express();
+const app =
+  express();
 
 
 const server =
@@ -31,34 +25,65 @@ const server =
 
 
 const io =
-  new Server(server, {
+  new Server(
+    server,
+    {
+      cors:{
+        origin:"*",
 
-    cors: {
-
-      origin: "*",
-
-      methods: [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE"
-      ]
+        methods:[
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE"
+        ]
+      }
     }
-  });
+  );
 
+
+app.set(
+  "io",
+  io
+);
+
+
+// ONLINE USERS STORAGE
+
+const onlineUsers =
+  new Map();
+
+
+function sendOnlineUsers(){
+
+  io.emit(
+    "onlineUsersUpdate",
+    Array.from(
+      onlineUsers.values()
+    )
+  );
+}
+
+
+// SOCKET CONNECTION
 
 io.on(
   "connection",
-  (socket) => {
+  (socket)=>{
 
     console.log(
       "Socket connected:",
       socket.id
     );
 
+
     socket.on(
       "joinUserRoom",
-      (userId) => {
+      (userId)=>{
+
+        if(!userId){
+          return;
+        }
 
         socket.join(
           userId.toString()
@@ -71,9 +96,54 @@ io.on(
       }
     );
 
+
+    socket.on(
+      "userOnline",
+      (data)=>{
+
+        if(
+          !data?.userId ||
+          !data?.role
+        ){
+
+          return;
+        }
+
+        onlineUsers.set(
+          socket.id,
+          {
+            socketId:socket.id,
+            userId:String(data.userId),
+            name:data.name || "Unknown",
+            phone:data.phone || "N/A",
+            role:data.role,
+            connectedAt:new Date()
+              .toISOString()
+          }
+        );
+
+        sendOnlineUsers();
+      }
+    );
+
+
+    socket.on(
+      "requestOnlineUsers",
+      ()=>{
+
+        socket.emit(
+          "onlineUsersUpdate",
+          Array.from(
+            onlineUsers.values()
+          )
+        );
+      }
+    );
+
+
     socket.on(
       "riderLocation",
-      (data) => {
+      (data)=>{
 
         io.emit(
           "riderLocationUpdate",
@@ -82,9 +152,16 @@ io.on(
       }
     );
 
+
     socket.on(
       "disconnect",
-      () => {
+      ()=>{
+
+        onlineUsers.delete(
+          socket.id
+        );
+
+        sendOnlineUsers();
 
         console.log(
           "Socket disconnected:",
@@ -96,13 +173,18 @@ io.on(
 );
 
 
-app.set("io", io);
+// MIDDLEWARE
+
+app.use(
+  cors()
+);
+
+app.use(
+  express.json()
+);
 
 
-app.use(cors());
-
-app.use(express.json());
-
+// ROUTES
 
 const paymentRoutes =
   require("./routes/paymentRoutes");
@@ -156,7 +238,7 @@ app.use(
 
 app.get(
   "/",
-  (req, res) => {
+  (req,res)=>{
 
     res.send(
       "MonniDrop API Running"
@@ -164,26 +246,24 @@ app.get(
   }
 );
 
+
+// DATABASE + SERVER
+
 mongoose.connect(
   process.env.MONGO_URI
 )
 
-.then(() => {
+.then(()=>{
 
   console.log(
     "MongoDB connected"
   );
 
-
-
   server.listen(
-
     process.env.PORT || 5000,
-
-    () => {
+    ()=>{
 
       console.log(
-
         `Server running on port ${
           process.env.PORT || 5000
         }`
@@ -192,11 +272,13 @@ mongoose.connect(
   );
 })
 
-.catch((err) => {
+.catch((err)=>{
 
   console.log(
     "MongoDB connection error:"
   );
 
-  console.log(err);
+  console.log(
+    err
+  );
 });

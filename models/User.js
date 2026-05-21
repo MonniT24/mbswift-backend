@@ -23,30 +23,30 @@ const userSchema =
       },
 
       dob:{
-  type:String,
-  default:""
-},
+        type:String,
+        default:""
+      },
 
-address:{
-  type:String,
-  default:""
-},
+      address:{
+        type:String,
+        default:""
+      },
 
-gender:{
-  type:String,
-  enum:[
-    "",
-    "Female",
-    "Male",
-    "Prefer not to say"
-  ],
-  default:""
-},
+      gender:{
+        type:String,
+        enum:[
+          "",
+          "Female",
+          "Male",
+          "Prefer not to say"
+        ],
+        default:""
+      },
 
-emergencyContact:{
-  type:String,
-  default:""
-},
+      emergencyContact:{
+        type:String,
+        default:""
+      },
 
       password:{
         type:String,
@@ -54,92 +54,176 @@ emergencyContact:{
       },
 
       role:{
-  type:String,
+        type:String,
 
-  enum:[
-    "customer",
-    "rider",
-    "admin"
-  ],
+        enum:[
+          "customer",
+          "rider",
+          "admin"
+        ],
 
-  default:"customer"
-},
+        default:"customer"
+      },
 
-profileImage:{
-  type:String,
-  default:""
-},
+      profileImage:{
+        type:String,
+        default:""
+      },
 
-customerSettings:{
+      customerSettings:{
 
-  phoneNumber:{
-    type:String,
-    default:""
-  },
+        phoneNumber:{
+          type:String,
+          default:""
+        },
 
-  email:{
-    type:String,
-    default:""
-  },
+        email:{
+          type:String,
+          default:""
+        },
 
-  country:{
-    type:String,
-    default:"Ghana"
-  },
+        country:{
+          type:String,
+          default:"Ghana"
+        },
 
-  language:{
-    type:String,
-    default:"English"
-  },
+        language:{
+          type:String,
+          default:"English"
+        },
 
-  currency:{
-    type:String,
-    default:"GHS"
-  },
+        currency:{
+          type:String,
+          default:"GHS"
+        },
 
-  paymentMethod:{
-    type:String,
-    default:""
-  },
+        paymentMethod:{
+          type:String,
+          default:""
+        },
 
-  twoFactorEnabled:{
-    type:Boolean,
-    default:false
-  },
+        twoFactorEnabled:{
+          type:Boolean,
+          default:false
+        },
 
-  googleConnected:{
-    type:Boolean,
-    default:false
-  },
+        googleConnected:{
+          type:Boolean,
+          default:false
+        },
 
-  facebookConnected:{
-    type:Boolean,
-    default:false
-  }
+        facebookConnected:{
+          type:Boolean,
+          default:false
+        }
 
-},
+      },
 
-motorNumber:{
-  type:String,
-  default:""
-},
+      motorNumber:{
+        type:String,
+        default:""
+      },
 
-//RIDER STATUS
+      // RIDER LIVE WORK STATUS
+      // available = can accept orders
+      // busy = currently handling order
+      // offline = not available
+      // suspended = blocked from delivery actions
 
       status:{
-  type:String,
+        type:String,
 
-  enum:[
-    "available",
-    "busy",
-    "offline",
-    "suspended"
-  ],
+        enum:[
+          "available",
+          "busy",
+          "offline",
+          "suspended"
+        ],
 
-  default:"available"
-},
+        default:"available"
+      },
 
-      //LIVE LOCATION
+      // RIDER ACCOUNT STATUS FOR ADMIN CONTROL
+      // active = normal rider
+      // temporary_suspended = rider can login but cannot accept orders
+      // permanent_suspended = rider can login but remains blocked
+      // reinstated = rider restored after suspension
+
+      riderAccountStatus:{
+        type:String,
+
+        enum:[
+          "active",
+          "temporary_suspended",
+          "permanent_suspended",
+          "reinstated"
+        ],
+
+        default:"active"
+      },
+
+      riderStatusReason:{
+        type:String,
+        default:""
+      },
+
+      riderStatusMessage:{
+        type:String,
+        default:""
+      },
+
+      riderStatusUpdatedAt:{
+        type:Date,
+        default:null
+      },
+
+      // RIDER NOTIFICATION INBOX
+      // This stores admin messages like suspension, reinstatement, warnings.
+
+      notifications:[
+        {
+          title:{
+            type:String,
+            default:""
+          },
+
+          message:{
+            type:String,
+            default:""
+          },
+
+          type:{
+            type:String,
+            default:"system"
+          },
+
+          accountStatus:{
+            type:String,
+
+            enum:[
+              "",
+              "active",
+              "temporary_suspended",
+              "permanent_suspended",
+              "reinstated"
+            ],
+
+            default:""
+          },
+
+          read:{
+            type:Boolean,
+            default:false
+          },
+
+          createdAt:{
+            type:Date,
+            default:Date.now
+          }
+        }
+      ],
+
+      // LIVE LOCATION
 
       latitude:{
         type:Number,
@@ -151,7 +235,7 @@ motorNumber:{
         default:0
       },
 
-      //CURRENT ORDER
+      // CURRENT ORDER
 
       currentOrder:{
         type:mongoose.Schema.Types.ObjectId,
@@ -161,7 +245,7 @@ motorNumber:{
         default:null
       },
 
-      //LAST ACTIVE
+      // LAST ACTIVE
 
       lastSeen:{
         type:Date,
