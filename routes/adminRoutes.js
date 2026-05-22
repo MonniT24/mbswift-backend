@@ -10,6 +10,12 @@ const authMiddleware =
 const User =
   require("../models/User");
 
+  const RiderStatusHistory =
+  require("../models/RiderStatusHistory");
+
+const RiderRating =
+  require("../models/RiderRating");
+
 function checkAdmin(req,res,next){
 
   if(
@@ -185,6 +191,12 @@ async function updateRiderStatus({
   const cleanReason =
     reason.trim();
 
+    const oldAccountStatus =
+  rider.riderAccountStatus || "";
+
+const oldWorkStatus =
+  rider.status || "";
+
   const finalMessage =
     `${statusInfo.message}\n\nReason: ${cleanReason}`;
 
@@ -248,6 +260,23 @@ async function updateRiderStatus({
   );
 
   await rider.save();
+
+  await RiderStatusHistory.create({
+
+  rider:rider._id,
+
+  admin:req.user?._id || null,
+
+  accountStatus:accountStatus,
+
+  previousStatus:oldAccountStatus || oldWorkStatus,
+
+  newStatus:rider.status,
+
+  reason:cleanReason,
+
+  message:finalMessage
+});
 
   await sendRiderNotification(
     req,
@@ -359,6 +388,159 @@ router.put(
       return res.status(500)
       .json({
         message:"Failed to reactivate rider"
+      });
+    }
+  }
+);
+
+router.get(
+  "/rider-status-file",
+  authMiddleware,
+  checkAdmin,
+  async(req,res)=>{
+
+    try{
+
+      const riders =
+        await User.find({
+          role:"rider"
+        }).select(
+          "-password"
+        );
+
+      const histories =
+        await RiderStatusHistory.find({})
+        .populate(
+          "rider",
+          "name phone email status riderAccountStatus"
+        )
+        .populate(
+          "admin",
+          "name email"
+        )
+        .sort({
+          createdAt:-1
+        });
+
+      const ratings =
+        await RiderRating.find({})
+        .populate(
+          "rider",
+          "name phone email"
+        )
+        .populate(
+          "customer",
+          "name phone email"
+        )
+        .populate(
+          "order",
+          "pickupLocation dropoffLocation total status"
+        )
+        .sort({
+          createdAt:-1
+        });
+
+      const riderFiles =
+        riders.map((rider)=>{
+
+          const riderId =
+            rider._id.toString();
+
+          const riderHistories =
+            histories.filter((history)=>
+              history.rider &&
+              history.rider._id.toString() === riderId
+            );
+
+          const riderRatings =
+            ratings.filter((rating)=>
+              rating.rider &&
+              rating.rider._id.toString() === riderId
+            );
+
+          const suspensionCount =
+            riderHistories.filter((history)=>
+              history.accountStatus === "temporary_suspended" ||
+              history.accountStatus === "permanent_suspended"
+            ).length;
+
+          const reinstatedCount =
+            riderHistories.filter((history)=>
+              history.accountStatus === "reinstated"
+            ).length;
+
+          const totalRatings =
+            riderRatings.length;
+
+          const averageRating =
+            totalRatings > 0
+            ? Number(
+                (
+                  riderRatings.reduce(
+                    (sum,item)=>
+                      sum + Number(item.rating || 0),
+                    0
+                  ) / totalRatings
+                ).toFixed(1)
+              )
+            : 0;
+
+          let performanceCategory =
+            "Not Rated Yet";
+
+          if(
+            averageRating >= 4.5 &&
+            suspensionCount === 0
+          ){
+
+            performanceCategory =
+              "Hardworking";
+          }
+          else if(
+            averageRating >= 3 &&
+            suspensionCount <= 1
+          ){
+
+            performanceCategory =
+              "Average";
+          }
+          else if(
+            totalRatings > 0 ||
+            suspensionCount > 0
+          ){
+
+            performanceCategory =
+              "Needs Attention";
+          }
+
+          return {
+            rider:rider,
+            currentAccountStatus:rider.riderAccountStatus || "active",
+            currentWorkStatus:rider.status || "available",
+            suspensionCount:suspensionCount,
+            reinstatedCount:reinstatedCount,
+            totalRatings:totalRatings,
+            averageRating:averageRating,
+            performanceCategory:performanceCategory,
+            statusHistory:riderHistories,
+            ratings:riderRatings
+          };
+        });
+
+      res.status(200).json({
+        totalRiders:riderFiles.length,
+        riderFiles:riderFiles
+      });
+
+    }catch(err){
+
+      console.log(
+        "RIDER STATUS FILE ERROR:",
+        err
+      );
+
+      res.status(500).json({
+        message:"Failed to load rider status file"
       });
     }
   }

@@ -204,6 +204,9 @@ const riderRoutes =
 const adminRoutes =
   require("./routes/adminRoutes");
 
+  const ratingRoutes =
+  require("./routes/ratingRoutes");
+
 
 app.use(
   "/api/auth",
@@ -233,6 +236,11 @@ app.use(
 app.use(
   "/api/admin",
   adminRoutes
+);
+
+app.use(
+  "/api/ratings",
+  ratingRoutes
 );
 
 
