@@ -699,6 +699,9 @@ if(
   order.isPaid =
     true;
 
+    order.paidAt =
+  new Date();
+
   order.cashCollectedByRider =
     true;
 
