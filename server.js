@@ -1,61 +1,41 @@
 require("dotenv").config();
 
-const express =
-  require("express");
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const http = require("http");
 
-const mongoose =
-  require("mongoose");
+const { Server } = require("socket.io");
 
-const cors =
-  require("cors");
+const app = express();
 
-const http =
-  require("http");
+const server = http.createServer(app);
 
-const { Server } =
-  require("socket.io");
-
-
-const app =
-  express();
-
-
-const server =
-  http.createServer(app);
-
-
-const io =
-  new Server(
-    server,
-    {
-      cors:{
-        origin:"*",
-
-        methods:[
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE"
-        ]
-      }
+const io = new Server(
+  server,
+  {
+    cors: {
+      origin: "*",
+      methods: [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
     }
-  );
-
+  }
+);
 
 app.set(
   "io",
   io
 );
 
-
 // ONLINE USERS STORAGE
 
-const onlineUsers =
-  new Map();
+const onlineUsers = new Map();
 
-
-function sendOnlineUsers(){
-
+function sendOnlineUsers() {
   io.emit(
     "onlineUsersUpdate",
     Array.from(
@@ -64,24 +44,20 @@ function sendOnlineUsers(){
   );
 }
 
-
 // SOCKET CONNECTION
 
 io.on(
   "connection",
-  (socket)=>{
-
+  (socket) => {
     console.log(
       "Socket connected:",
       socket.id
     );
 
-
     socket.on(
       "joinUserRoom",
-      (userId)=>{
-
-        if(!userId){
+      (userId) => {
+        if (!userId) {
           return;
         }
 
@@ -96,29 +72,25 @@ io.on(
       }
     );
 
-
     socket.on(
       "userOnline",
-      (data)=>{
-
-        if(
+      (data) => {
+        if (
           !data?.userId ||
           !data?.role
-        ){
-
+        ) {
           return;
         }
 
         onlineUsers.set(
           socket.id,
           {
-            socketId:socket.id,
-            userId:String(data.userId),
-            name:data.name || "Unknown",
-            phone:data.phone || "N/A",
-            role:data.role,
-            connectedAt:new Date()
-              .toISOString()
+            socketId: socket.id,
+            userId: String(data.userId),
+            name: data.name || "Unknown",
+            phone: data.phone || "N/A",
+            role: data.role,
+            connectedAt: new Date().toISOString()
           }
         );
 
@@ -126,11 +98,9 @@ io.on(
       }
     );
 
-
     socket.on(
       "requestOnlineUsers",
-      ()=>{
-
+      () => {
         socket.emit(
           "onlineUsersUpdate",
           Array.from(
@@ -140,11 +110,9 @@ io.on(
       }
     );
 
-
     socket.on(
       "riderLocation",
-      (data)=>{
-
+      (data) => {
         io.emit(
           "riderLocationUpdate",
           data
@@ -152,11 +120,9 @@ io.on(
       }
     );
 
-
     socket.on(
       "disconnect",
-      ()=>{
-
+      () => {
         onlineUsers.delete(
           socket.id
         );
@@ -172,7 +138,6 @@ io.on(
   }
 );
 
-
 // MIDDLEWARE
 
 app.use(
@@ -183,30 +148,18 @@ app.use(
   express.json()
 );
 
+// ROUTES IMPORTS
 
-// ROUTES
+const paymentRoutes = require("./routes/paymentRoutes");
+const authRoutes = require("./routes/authRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const customerRoutes = require("./routes/customerRoutes");
+const riderRoutes = require("./routes/riderRoutes");
+const riderStatusHistoryRoutes = require("./routes/riderStatusHistoryRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const ratingRoutes = require("./routes/ratingRoutes");
 
-const paymentRoutes =
-  require("./routes/paymentRoutes");
-
-const authRoutes =
-  require("./routes/authRoutes");
-
-const orderRoutes =
-  require("./routes/orderRoutes");
-
-const customerRoutes =
-  require("./routes/customerRoutes");
-
-const riderRoutes =
-  require("./routes/riderRoutes");
-
-const adminRoutes =
-  require("./routes/adminRoutes");
-
-  const ratingRoutes =
-  require("./routes/ratingRoutes");
-
+// ROUTES USE
 
 app.use(
   "/api/auth",
@@ -229,6 +182,11 @@ app.use(
 );
 
 app.use(
+  "/api/rider-status-histories",
+  riderStatusHistoryRoutes
+);
+
+app.use(
   "/api/payments",
   paymentRoutes
 );
@@ -243,50 +201,47 @@ app.use(
   ratingRoutes
 );
 
-
 app.get(
   "/",
-  (req,res)=>{
-
+  (req, res) => {
     res.send(
       "MonniDrop API Running"
     );
   }
 );
 
-
 // DATABASE + SERVER
 
-mongoose.connect(
-  process.env.MONGO_URI
-)
+mongoose
+  .connect(
+    process.env.MONGO_URI
+  )
+  .then(
+    () => {
+      console.log(
+        "MongoDB connected"
+      );
 
-.then(()=>{
-
-  console.log(
-    "MongoDB connected"
-  );
-
-  server.listen(
-    process.env.PORT || 5000,
-    ()=>{
+      server.listen(
+        process.env.PORT || 5000,
+        () => {
+          console.log(
+            `Server running on port ${
+              process.env.PORT || 5000
+            }`
+          );
+        }
+      );
+    }
+  )
+  .catch(
+    (err) => {
+      console.log(
+        "MongoDB connection error:"
+      );
 
       console.log(
-        `Server running on port ${
-          process.env.PORT || 5000
-        }`
+        err
       );
     }
   );
-})
-
-.catch((err)=>{
-
-  console.log(
-    "MongoDB connection error:"
-  );
-
-  console.log(
-    err
-  );
-});
