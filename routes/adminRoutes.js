@@ -16,6 +16,9 @@ const User =
 const RiderRating =
   require("../models/RiderRating");
 
+  const adminController =
+  require("../controllers/adminController");
+
 function checkAdmin(req,res,next){
 
   if(
@@ -544,6 +547,13 @@ router.get(
       });
     }
   }
+);
+
+router.get(
+  "/payment-records",
+  authMiddleware,
+  checkAdmin,
+  adminController.getPaymentRecords
 );
 
 module.exports =

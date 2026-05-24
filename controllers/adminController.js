@@ -1,5 +1,5 @@
 const User =
-  require("../models/User");
+  require("../models/Order");
 
 exports.updateRiderAccountStatus =
   async(req,res)=>{
@@ -162,6 +162,75 @@ exports.updateRiderAccountStatus =
         message:"Rider account status updated successfully",
         rider
       });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500)
+      .json({
+        message:err.message
+      });
+    }
+  };
+
+  exports.getPaymentRecords =
+  async(req,res)=>{
+
+    try{
+
+      const orders =
+        await Order.find({
+          status:"delivered"
+        })
+
+        .populate(
+          "customer",
+          "name phone email"
+        )
+
+        .populate(
+          "rider",
+          "name phone email"
+        )
+
+        .sort({
+          deliveredAt:-1,
+          createdAt:-1
+        });
+
+      const records =
+        orders.map((order)=>{
+
+          return {
+            orderId:order._id,
+            customer:{
+              name:order.customer?.name || "Unknown Customer",
+              phone:order.customer?.phone || "N/A",
+              email:order.customer?.email || "N/A"
+            },
+            rider:{
+              name:order.rider?.name || "Unassigned Rider",
+              phone:order.rider?.phone || "N/A",
+              email:order.rider?.email || "N/A"
+            },
+            pickupLocation:order.pickupLocation,
+            dropoffLocation:order.dropoffLocation,
+            paymentMethod:order.paymentMethod,
+            isPaid:order.isPaid,
+            paidAt:order.paidAt,
+            cashCollectedByRider:order.cashCollectedByRider || false,
+            cashCollectedAt:order.cashCollectedAt || null,
+            amount:order.total || 0,
+            status:order.status,
+            deliveredAt:order.deliveredAt,
+            createdAt:order.createdAt
+          };
+        });
+
+      res.json(
+        records
+      );
 
     }catch(err){
 
