@@ -101,6 +101,16 @@ const orderSchema =
         default:null
       },
 
+      cashCollectedByRider:{
+  type:Boolean,
+  default:false
+},
+
+cashCollectedAt:{
+  type:Date,
+  default:null
+},
+
       paymentResult:{
 
         reference:{

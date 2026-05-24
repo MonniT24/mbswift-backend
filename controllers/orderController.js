@@ -673,14 +673,38 @@ exports.completeDeliveryWithCode =
         });
       }
 
-      order.status =
-        "delivered";
+     order.status =
+  "delivered";
 
-      order.deliveryCodeVerified =
-        true;
+order.deliveryCodeVerified =
+  true;
 
-      order.deliveredAt =
-        new Date();
+order.deliveredAt =
+  new Date();
+
+// CASH ON DELIVERY PAYMENT CONFIRMATION
+
+console.log(
+  "PAYMENT METHOD BEFORE CASH CHECK:",
+  order.paymentMethod
+);
+
+if(
+  order.paymentMethod === "cash"
+){
+
+  order.paymentStatus =
+    "paid";
+
+  order.isPaid =
+    true;
+
+  order.cashCollectedByRider =
+    true;
+
+  order.cashCollectedAt =
+    new Date();
+}
 
       await order.save();
 
