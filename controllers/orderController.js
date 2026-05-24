@@ -1,6 +1,9 @@
 const Order =
   require("../models/Order");
 
+  const RiderRating =
+  require("../models/RiderRating");
+
 const generateDeliveryCode =
   require("../utils/generateDeliveryCode");
 
@@ -37,6 +40,55 @@ const isBlockedRider =
 
 const blockedRiderMessage =
   "Your rider account is suspended. You can login, but you cannot view, accept, update, or complete delivery orders.";
+
+  async function attachRiderRatingStatus(
+  orders,
+  customerId
+){
+
+  if(
+    !Array.isArray(orders) ||
+    orders.length === 0 ||
+    !customerId
+  ){
+
+    return orders;
+  }
+
+  const orderIds =
+    orders.map((order)=>
+      order._id
+    );
+
+  const ratings =
+    await RiderRating.find({
+      customer:customerId,
+      order:{
+        $in:orderIds
+      }
+    }).select("order");
+
+  const ratedOrderIds =
+    ratings.map((rating)=>
+      rating.order.toString()
+    );
+
+  return orders.map((order)=>{
+
+    const plainOrder =
+      order.toObject
+      ? order.toObject()
+      : order;
+
+    const orderId =
+      plainOrder._id?.toString();
+
+    return {
+      ...plainOrder,
+      riderRated:ratedOrderIds.includes(orderId)
+    };
+  });
+}
 
 // GET ORDERS
 
@@ -119,6 +171,12 @@ exports.getOrders =
             createdAt:-1
           });
 
+          orders =
+  await attachRiderRatingStatus(
+    orders,
+    req.user._id
+  );
+
       }else{
 
         orders =
@@ -137,6 +195,33 @@ exports.getOrders =
           .sort({
             createdAt:-1
           });
+
+          const customerRatings =
+  await RiderRating.find({
+    customer:req.user._id
+  }).select("order");
+
+const ratedOrderIds =
+  customerRatings.map((rating)=>
+    rating.order?.toString()
+  );
+
+orders =
+  orders.map((order)=>{
+
+    const plainOrder =
+      order.toObject
+      ? order.toObject()
+      : order;
+
+    return {
+      ...plainOrder,
+      riderRated:ratedOrderIds.includes(
+        plainOrder._id.toString()
+      )
+    };
+  });
+  
       }
 
       res.json(
