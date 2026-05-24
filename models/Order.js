@@ -111,6 +111,30 @@ cashCollectedAt:{
   default:null
 },
 
+cashSettledToAdmin:{
+  type:Boolean,
+  default:false
+},
+
+cashSettledAt:{
+  type:Date,
+  default:null
+},
+
+cashSettledBy:{
+  type:
+    mongoose.Schema.Types.ObjectId,
+
+  ref:"User",
+
+  default:null
+},
+
+cashSettlementNote:{
+  type:String,
+  default:""
+},
+
       paymentResult:{
 
         reference:{

@@ -556,5 +556,12 @@ router.get(
   adminController.getPaymentRecords
 );
 
+router.put(
+  "/payment-records/:orderId/settle-cash",
+  authMiddleware,
+  checkAdmin,
+  adminController.markCashAsSettled
+);
+
 module.exports =
   router;

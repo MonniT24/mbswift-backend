@@ -245,3 +245,75 @@ exports.updateRiderAccountStatus =
       });
     }
   };
+
+  exports.markCashAsSettled =
+  async(req,res)=>{
+
+    try{
+
+      const {
+        note
+      } = req.body;
+
+      const order =
+        await Order.findById(
+          req.params.orderId
+        );
+
+      if(!order){
+
+        return res.status(404)
+        .json({
+          message:"Order not found"
+        });
+      }
+
+      if(
+        order.paymentMethod !== "cash"
+      ){
+
+        return res.status(400)
+        .json({
+          message:"This is not a cash order"
+        });
+      }
+
+      if(
+        order.cashCollectedByRider !== true
+      ){
+
+        return res.status(400)
+        .json({
+          message:"Rider has not collected cash yet"
+        });
+      }
+
+      order.cashSettledToAdmin =
+        true;
+
+      order.cashSettledAt =
+        new Date();
+
+      order.cashSettledBy =
+        req.user._id;
+
+      order.cashSettlementNote =
+        note || "";
+
+      await order.save();
+
+      res.json({
+        message:"Cash marked as settled successfully",
+        order
+      });
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500)
+      .json({
+        message:err.message
+      });
+    }
+  };
