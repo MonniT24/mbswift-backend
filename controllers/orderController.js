@@ -163,9 +163,9 @@ exports.getOrders =
           )
 
           .populate(
-            "rider",
-            "name phone latitude longitude status riderAccountStatus riderStatusReason"
-          )
+  "rider",
+  "name phone email profileImage latitude longitude status riderAccountStatus riderStatusReason motorNumber"
+)
 
           .sort({
             createdAt:-1
