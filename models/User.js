@@ -142,6 +142,11 @@ idNumber:{
         default:""
       },
 
+      motorName:{
+  type:String,
+  default:""
+},
+
       idType:{
   type:String,
   enum:[

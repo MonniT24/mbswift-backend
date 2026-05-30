@@ -121,6 +121,10 @@ exports.updateRiderProfile =
         req.body.motorNumber ||
         rider.motorNumber;
 
+        rider.motorName =
+      req.body.motorName ||
+        rider.motorName;
+
       rider.idType =
         req.body.idType ||
         rider.idType;
