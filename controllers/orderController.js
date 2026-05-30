@@ -117,7 +117,7 @@ exports.getOrders =
 
           .populate(
             "rider",
-            "name phone latitude longitude status riderAccountStatus riderStatusReason"
+           "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
           )
 
           .sort({
@@ -162,9 +162,9 @@ exports.getOrders =
             "name phone"
           )
 
-          .populate(
+.populate(
   "rider",
-  "name phone email profileImage latitude longitude status riderAccountStatus riderStatusReason motorNumber"
+  "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
 )
 
           .sort({
@@ -189,7 +189,7 @@ exports.getOrders =
 
           .populate(
             "rider",
-            "name phone latitude longitude status riderAccountStatus riderStatusReason"
+            "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
           )
 
           .sort({
@@ -341,7 +341,7 @@ exports.createOrder =
 
         .populate(
           "rider",
-          "name phone latitude longitude status riderAccountStatus riderStatusReason"
+         "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -545,7 +545,7 @@ exports.updateOrder =
 
         .populate(
           "rider",
-          "name phone latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -641,7 +641,7 @@ exports.updateOrderToPaid =
 
         .populate(
           "rider",
-          "name phone latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -808,7 +808,7 @@ if(
 
         .populate(
           "rider",
-          "name phone latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -945,7 +945,7 @@ exports.sendMessage =
 
         .populate(
           "rider",
-          "name phone latitude longitude status riderAccountStatus riderStatusReason"
+         "name phone profileImage latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       if(req.user.role === "rider"){
