@@ -124,6 +124,12 @@ exports.getOrders =
             createdAt:-1
           });
 
+          orders =
+  await attachRiderRatingStatus(
+    orders,
+    req.user._id
+  );
+
       }else if(req.user.role === "rider"){
 
         if(
