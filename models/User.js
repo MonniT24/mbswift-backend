@@ -147,16 +147,15 @@ idNumber:{
   default:""
 },
 
-      idType:{
+     idType:{
   type:String,
   enum:[
     "Ghana Card",
-    "Driver's License",
     "Passport",
     "Voter ID",
-    "Other"
+    "Driver License"
   ],
-  default:""
+  default:undefined
 },
 
 idNumber:{
