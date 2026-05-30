@@ -1,7 +1,7 @@
 const User =
   require("../models/User");
 
-//GET RIDER
+// GET RIDER
 
 exports.getMe =
   async (
@@ -46,6 +46,8 @@ exports.getMe =
   };
 
 
+// GET ALL RIDERS
+
 exports.getAllRiders =
   async (
     req,
@@ -84,7 +86,8 @@ exports.getAllRiders =
     }
   };
 
-  //UPDATE RIDER PROFILE
+
+// UPDATE RIDER PROFILE
 
 exports.updateRiderProfile =
   async (
@@ -111,14 +114,22 @@ exports.updateRiderProfile =
         rider.dob;
 
       rider.emergencyContact =
-      req.body.emergencyContact ||
-      rider.emergencyContact;
+        req.body.emergencyContact ||
+        rider.emergencyContact;
 
-     rider.motorNumber =
-     req.body.motorNumber ||
-     rider.motorNumber;
+      rider.motorNumber =
+        req.body.motorNumber ||
+        rider.motorNumber;
 
-     await rider.save();
+      rider.idType =
+        req.body.idType ||
+        rider.idType;
+
+      rider.idNumber =
+        req.body.idNumber ||
+        rider.idNumber;
+
+      await rider.save();
 
       const updatedRider =
         await User.findById(

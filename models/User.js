@@ -22,6 +22,24 @@ const userSchema =
         required:true
       },
 
+      idType:{
+      type:String,
+     enum:[
+    "Ghana Card",
+    "Driver's License",
+    "Passport",
+    "Voter ID",
+    "Other"
+  ],
+  default:""
+},
+
+idNumber:{
+  type:String,
+  trim:true,
+  default:""
+},
+
       dob:{
         type:String,
         default:""
@@ -123,6 +141,24 @@ const userSchema =
         type:String,
         default:""
       },
+
+      idType:{
+  type:String,
+  enum:[
+    "Ghana Card",
+    "Driver's License",
+    "Passport",
+    "Voter ID",
+    "Other"
+  ],
+  default:""
+},
+
+idNumber:{
+  type:String,
+  trim:true,
+  default:""
+},
 
       // RIDER LIVE WORK STATUS
       // available = can accept orders
