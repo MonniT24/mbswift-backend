@@ -4,7 +4,8 @@ const Order =
 const User =
   require("../models/User");
 
-//CREATE ORDER
+
+// CREATE ORDER
 
 exports.createOrder =
   async (
@@ -12,23 +13,23 @@ exports.createOrder =
     res
   ) => {
 
-    try {
+    try{
 
       const {
         pickupLocation,
         dropoffLocation,
         items,
         total,
-        distance
+        distance,
+        deliveryTime,
+        paymentMethod,
+        momoNumber
       } = req.body;
-
-      // NO AUTO ASSIGNMENT
 
       const order =
         await Order.create({
 
-          customer:
-            req.user._id,
+          customer:req.user._id,
 
           pickupLocation,
 
@@ -40,11 +41,18 @@ exports.createOrder =
 
           distance,
 
-          status:
-            "pending",
+          deliveryTime,
 
-          rider:
-            null
+          paymentMethod,
+
+          momoNumber:
+            paymentMethod === "momo"
+            ? momoNumber
+            : "",
+
+          status:"pending",
+
+          rider:null
         });
 
       const populatedOrder =
@@ -54,190 +62,17 @@ exports.createOrder =
 
         .populate(
           "customer",
-          "name phone"
+          "name phone email"
         )
 
         .populate(
           "rider",
-          "name phone status"
+          "name phone email profileImage motorName motorNumber status"
         );
 
       res.status(201).json({
-
-        message:
-          "Order created",
-
-        order:
-          populatedOrder
-      });
-
-    } catch (err) {
-
-      console.log(err);
-
-      res.status(500).json({
-        message:
-          err.message
-      });
-    }
-  };
-
-//GET CUSTOMER ORDERS
-
-exports.getMyOrders =
-  async (
-    req,
-    res
-  ) => {
-
-    try {
-
-      const orders =
-        await Order.find({
-
-          customer:
-            req.user._id
-        })
-
-        .populate(
-          "customer",
-          "name phone"
-        )
-
-        .populate(
-          "rider",
-          "name phone status"
-        )
-
-        .sort({
-          createdAt:-1
-        });
-
-      res.json(
-        orders
-      );
-
-    } catch (err) {
-
-      console.log(err);
-
-      res.status(500).json({
-        message:
-          err.message
-      });
-    }
-  };
-
-//GET LOGGED USER
-
-exports.getMe =
-  async (
-    req,
-    res
-  ) => {
-
-    try {
-
-      const user =
-        await User.findById(
-          req.user._id
-        )
-
-        .select(
-          "-password"
-        );
-
-      res.json(
-        user
-      );
-
-    } catch (err) {
-
-      console.log(err);
-
-      res.status(500).json({
-        message:
-          err.message
-      });
-    }
-  };
-
-  //UPDATE CUSTOMER PROFILE
-
-exports.updateProfile =
-  async (
-    req,
-    res
-  ) => {
-
-    try{
-
-      const user =
-        await User.findById(
-          req.user._id
-        );
-
-      if(!user){
-
-        return res.status(404).json({
-          message:"User not found"
-        });
-      }
-
-      user.name =
-  req.body.name !== undefined
-  ? req.body.name
-  : user.name;
-
-user.email =
-  req.body.email !== undefined
-  ? req.body.email
-  : user.email;
-
-user.phone =
-  req.body.phone !== undefined
-  ? req.body.phone
-  : user.phone;
-
-user.address =
-  req.body.address !== undefined
-  ? req.body.address
-  : user.address;
-
-user.dob =
-  req.body.dob !== undefined
-  ? req.body.dob
-  : user.dob;
-
-user.gender =
-  req.body.gender !== undefined
-  ? req.body.gender
-  : user.gender;
-
-user.emergencyContact =
-  req.body.emergencyContact !== undefined
-  ? req.body.emergencyContact
-  : user.emergencyContact;
-
-  console.log(
-  "PROFILE UPDATE BODY:",
-  req.body
-);
-
-      await user.save();
-
-      console.log(
-  "PROFILE SAVED USER:",
-  user
-);
-
-      res.json({
-
-        message:
-          "Profile updated successfully",
-
-        user
-
+        message:"Order created",
+        order:populatedOrder
       });
 
     }catch(err){
@@ -250,8 +85,188 @@ user.emergencyContact =
     }
   };
 
-  
-//GET CUSTOMER SETTINGS
+
+// GET CUSTOMER ORDERS
+
+exports.getMyOrders =
+  async (
+    req,
+    res
+  ) => {
+
+    try{
+
+      const orders =
+        await Order.find({
+          customer:req.user._id
+        })
+
+        .populate(
+          "customer",
+          "name phone email"
+        )
+
+        .populate(
+          "rider",
+          "name phone email profileImage motorName motorNumber status"
+        )
+
+        .sort({
+          createdAt:-1
+        });
+
+      res.json(
+        orders
+      );
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500).json({
+        message:err.message
+      });
+    }
+  };
+
+
+// GET LOGGED CUSTOMER
+
+exports.getMe =
+  async (
+    req,
+    res
+  ) => {
+
+    try{
+
+      const user =
+        await User.findById(
+          req.user._id
+        ).select("-password");
+
+      if(!user){
+
+        return res.status(404).json({
+          message:"Customer not found"
+        });
+      }
+
+      res.json(
+        user
+      );
+
+    }catch(err){
+
+      console.log(err);
+
+      res.status(500).json({
+        message:err.message
+      });
+    }
+  };
+
+
+// SHARED CUSTOMER PROFILE SAVE FUNCTION
+
+async function saveCustomerProfile(
+  req,
+  res
+){
+
+  try{
+
+    const user =
+      await User.findById(
+        req.user._id
+      );
+
+    if(!user){
+
+      return res.status(404).json({
+        message:"Customer not found"
+      });
+    }
+
+    user.name =
+      req.body.name !== undefined
+      ? req.body.name
+      : user.name;
+
+    user.email =
+      req.body.email !== undefined
+      ? req.body.email
+      : user.email;
+
+    user.phone =
+      req.body.phone !== undefined
+      ? req.body.phone
+      : user.phone;
+
+    user.address =
+      req.body.address !== undefined
+      ? req.body.address
+      : user.address;
+
+    user.dob =
+      req.body.dob !== undefined
+      ? req.body.dob
+      : user.dob;
+
+    user.gender =
+      req.body.gender !== undefined
+      ? req.body.gender
+      : user.gender;
+
+    user.emergencyContact =
+      req.body.emergencyContact !== undefined
+      ? req.body.emergencyContact
+      : user.emergencyContact;
+
+    if(
+      user.role === "customer"
+    ){
+
+      user.idType =
+        undefined;
+
+      user.idNumber =
+        undefined;
+    }
+
+    await user.save();
+
+    const updatedUser =
+      await User.findById(
+        req.user._id
+      ).select("-password");
+
+    res.json({
+      message:"Customer profile updated successfully",
+      user:updatedUser
+    });
+
+  }catch(err){
+
+    console.log(err);
+
+    res.status(500).json({
+      message:err.message
+    });
+  }
+}
+
+
+// UPDATE CUSTOMER PROFILE
+
+exports.updateProfile =
+  saveCustomerProfile;
+
+exports.updateCustomerProfile =
+  saveCustomerProfile;
+
+
+// GET CUSTOMER SETTINGS
 
 exports.getCustomerSettings =
   async (
@@ -264,9 +279,7 @@ exports.getCustomerSettings =
       const user =
         await User.findById(
           req.user._id
-        ).select(
-          "customerSettings"
-        );
+        ).select("customerSettings");
 
       if(!user){
 
@@ -276,8 +289,7 @@ exports.getCustomerSettings =
       }
 
       res.json({
-        settings:
-          user.customerSettings || {}
+        settings:user.customerSettings || {}
       });
 
     }catch(err){
@@ -291,7 +303,7 @@ exports.getCustomerSettings =
   };
 
 
-//UPDATE CUSTOMER SETTINGS
+// UPDATE CUSTOMER SETTINGS
 
 exports.updateCustomerSettings =
   async (
@@ -359,19 +371,13 @@ exports.updateCustomerSettings =
           req.body.facebookConnected !== undefined
           ? req.body.facebookConnected
           : user.customerSettings?.facebookConnected || false
-
       };
 
       await user.save();
 
       res.json({
-
-        message:
-          "Customer settings saved successfully",
-
-        settings:
-          user.customerSettings
-
+        message:"Customer settings saved successfully",
+        settings:user.customerSettings
       });
 
     }catch(err){
@@ -380,70 +386,6 @@ exports.updateCustomerSettings =
 
       res.status(500).json({
         message:err.message
-      });
-    }
-  };
-
-  // UPDATE CUSTOMER PROFILE IMAGE
-exports.updateCustomerProfileImage =
-  async(req,res)=>{
-
-    try{
-
-      const {
-        profileImage
-      } = req.body;
-
-      if(!profileImage){
-
-        return res.status(400)
-        .json({
-          message:"Profile image is required"
-        });
-      }
-
-      if(
-        !profileImage.startsWith(
-          "data:image/"
-        )
-      ){
-
-        return res.status(400)
-        .json({
-          message:"Invalid image format"
-        });
-      }
-
-      const user =
-        await User.findById(
-          req.user._id
-        );
-
-      if(!user){
-
-        return res.status(404)
-        .json({
-          message:"User not found"
-        });
-      }
-
-      user.profileImage =
-        profileImage;
-
-      await user.save();
-
-      res.json({
-        message:"Profile image updated successfully",
-        user
-      });
-
-    }catch(err){
-
-      console.log(err);
-
-      res.status(500)
-      .json({
-        message:"Server error while saving profile image"
       });
     }
   };
