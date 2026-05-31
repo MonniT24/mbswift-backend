@@ -125,11 +125,54 @@ exports.register =
     role
   });
 
-      res.status(201).json({
+      const token =
+  jwt.sign(
 
-        message:
-          "Registered successfully"
-      });
+    {
+
+      _id:user._id,
+
+      id:user._id,
+
+      role:user.role
+    },
+
+    process.env.JWT_SECRET ||
+    "secret",
+
+    {
+      expiresIn:"7d"
+    }
+  );
+
+res.status(201).json({
+
+  message:
+    "Registered successfully",
+
+  token,
+
+  user:{
+
+    _id:user._id,
+
+    name:user.name,
+
+    email:user.email,
+
+    phone:user.phone,
+
+    gender:user.gender,
+
+    dob:user.dob,
+
+    role:user.role,
+
+   phoneVerified:user.phoneVerified,
+
+profileCompleted:user.profileCompleted
+  }
+});
 
     }catch(err){
 
@@ -225,7 +268,15 @@ exports.login =
 
           role:user.role,
 
-          status:user.status
+        status:user.status,
+
+        gender:user.gender,
+
+        dob:user.dob,
+
+        phoneVerified:user.phoneVerified,
+
+        profileCompleted:user.profileCompleted
         }
       });
 

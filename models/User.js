@@ -40,6 +40,11 @@ dob:{
     default:false
     },
 
+    profileCompleted:{
+  type:Boolean,
+  default:false
+},
+
       idType:{
       type:String,
      enum:[
