@@ -22,6 +22,19 @@ const userSchema =
   trim:true
    },
 
+   gender:{
+  type:String,
+  enum:[
+    "Male",
+    "Female",
+    "Other"
+  ]
+},
+
+dob:{
+  type:Date
+},
+
     phoneVerified:{
     type:Boolean,
     default:false

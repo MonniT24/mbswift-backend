@@ -24,14 +24,16 @@ exports.register =
 
       const {
 
-        name,
-        email,
-        password,
-        phone,
-        role,
-        phoneVerificationToken
+     name,
+     email,
+     password,
+    phone,
+    gender,
+    dob,
+    role,
+    phoneVerificationToken
 
-      } = req.body;
+} = req.body;
 
       const existing =
         await User.findOne({
@@ -101,23 +103,27 @@ exports.register =
         );
 
       const user =
-        await User.create({
+  await User.create({
 
-          name,
+    name,
 
-          email,
+    email,
 
-          password:hashed,
+    password:hashed,
 
-          phone,
+    phone,
 
-          phoneVerified:
-            role === "customer"
-              ? true
-              : false,
+    gender,
 
-          role
-        });
+    dob,
+
+    phoneVerified:
+      role === "customer"
+        ? true
+        : false,
+
+    role
+  });
 
       res.status(201).json({
 
