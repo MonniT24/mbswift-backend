@@ -223,9 +223,19 @@ async function saveCustomerProfile(
       ? req.body.emergencyContact
       : user.emergencyContact;
 
-    if(
-      user.role === "customer"
-    ){
+     user.profileCompleted =
+  req.body.profileCompleted !== undefined
+  ? req.body.profileCompleted
+  : user.profileCompleted;
+
+console.log(
+  "PROFILE COMPLETED VALUE:",
+  req.body.profileCompleted
+);
+
+if(
+  user.role === "customer"
+){
 
       user.idType =
         undefined;
