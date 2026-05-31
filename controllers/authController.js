@@ -7,6 +7,11 @@ const bcrypt =
 const jwt =
   require("jsonwebtoken");
 
+  const {
+  sendPhoneOtp,
+  checkPhoneOtp
+} = require("../utils/twilioVerify");
+
 //REGISTER 
 
 exports.register =
@@ -23,7 +28,8 @@ exports.register =
         email,
         password,
         phone,
-        role
+        role,
+        phoneVerificationToken
 
       } = req.body;
 
@@ -39,6 +45,53 @@ exports.register =
           message:
             "User already exists"
         });
+      }
+
+      if(role === "customer"){
+
+        if(!phone){
+
+          return res.status(400).json({
+
+            message:
+              "Mobile number is required"
+          });
+        }
+
+        if(!phoneVerificationToken){
+
+          return res.status(400).json({
+
+            message:
+              "Please verify your mobile number first"
+          });
+        }
+
+        try{
+
+          const decoded =
+            jwt.verify(
+              phoneVerificationToken,
+              process.env.PHONE_VERIFY_JWT_SECRET
+            );
+
+          if(decoded.phone !== phone){
+
+            return res.status(400).json({
+
+              message:
+                "Verified phone number does not match"
+            });
+          }
+
+        }catch(error){
+
+          return res.status(400).json({
+
+            message:
+              "Phone verification expired. Please request OTP again"
+          });
+        }
       }
 
       const hashed =
@@ -57,6 +110,11 @@ exports.register =
           password:hashed,
 
           phone,
+
+          phoneVerified:
+            role === "customer"
+              ? true
+              : false,
 
           role
         });
@@ -78,7 +136,6 @@ exports.register =
       });
     }
   };
-
 //LOGIN
 
 exports.login =
@@ -174,6 +231,97 @@ exports.login =
 
         message:
           err.message
+      });
+    }
+  };
+
+  exports.sendRegistrationOtp =
+  async(req,res)=>{
+
+    try{
+
+      const { phone } =
+        req.body;
+
+      if(!phone){
+
+        return res.status(400).json({
+          message:"Mobile number is required"
+        });
+      }
+
+      await sendPhoneOtp(
+        phone
+      );
+
+      res.json({
+        message:"OTP sent successfully"
+      });
+
+    }catch(error){
+
+      console.log(
+        "SEND OTP ERROR:",
+        error.message
+      );
+
+      res.status(500).json({
+        message:"Failed to send OTP"
+      });
+    }
+  };
+
+  exports.verifyRegistrationOtp =
+  async(req,res)=>{
+
+    try{
+
+      const { phone, otp } =
+        req.body;
+
+      if(!phone || !otp){
+
+        return res.status(400).json({
+          message:"Phone number and OTP are required"
+        });
+      }
+
+      const verification =
+        await checkPhoneOtp(
+          phone,
+          otp
+        );
+
+      if(
+        verification.status !== "approved"
+      ){
+
+        return res.status(400).json({
+          message:"Invalid OTP"
+        });
+      }
+
+      const phoneVerificationToken =
+        jwt.sign(
+          { phone },
+          process.env.PHONE_VERIFY_JWT_SECRET,
+          { expiresIn:"10m" }
+        );
+
+      res.json({
+        message:"Phone number verified",
+        phoneVerificationToken
+      });
+
+    }catch(error){
+
+      console.log(
+        "VERIFY OTP ERROR:",
+        error.message
+      );
+
+      res.status(500).json({
+        message:"OTP verification failed"
       });
     }
   };

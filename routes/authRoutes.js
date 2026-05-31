@@ -4,10 +4,22 @@ const router = express.Router();
 
 const {
   register,
-  login
+  login,
+  sendRegistrationOtp,
+  verifyRegistrationOtp
 } = require("../controllers/authController");
 
 // REGISTER
+
+router.post(
+  "/send-registration-otp",
+  sendRegistrationOtp
+);
+
+router.post(
+  "/verify-registration-otp",
+  verifyRegistrationOtp
+);
 
 router.post(
   "/register",

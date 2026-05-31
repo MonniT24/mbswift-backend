@@ -18,9 +18,14 @@ const userSchema =
       },
 
       phone:{
-        type:String,
-        required:true
-      },
+  type:String,
+  trim:true
+   },
+
+    phoneVerified:{
+    type:Boolean,
+    default:false
+    },
 
       idType:{
       type:String,
