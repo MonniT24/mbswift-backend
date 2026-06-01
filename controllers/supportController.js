@@ -16,11 +16,28 @@ exports.sendSupportMessage =
         });
       }
 
-      const supportMessage =
+      let supportMessage =
         await SupportMessage.create({
           customer:req.user._id || req.user.id,
           message
         });
+
+      supportMessage =
+        await supportMessage.populate(
+          "customer",
+          "name email phone"
+        );
+
+      const io =
+        req.app.get("io");
+
+      if(io){
+
+        io.emit(
+          "supportMessageCreated",
+          supportMessage
+        );
+      }
 
       res.status(201).json(
         supportMessage
@@ -65,7 +82,7 @@ exports.replySupportMessage =
 
       const { reply } = req.body;
 
-      const message =
+      let message =
         await SupportMessage.findByIdAndUpdate(
           req.params.id,
           {
@@ -73,7 +90,21 @@ exports.replySupportMessage =
             status:"replied"
           },
           { new:true }
+        ).populate(
+          "customer",
+          "name email phone"
         );
+
+      const io =
+        req.app.get("io");
+
+      if(io){
+
+        io.emit(
+          "supportMessageReplied",
+          message
+        );
+      }
 
       res.json(message);
 
