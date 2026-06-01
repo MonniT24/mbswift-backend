@@ -147,7 +147,6 @@ app.use(
 app.use(
   express.json()
 );
-
 // ROUTES IMPORTS
 
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -162,45 +161,23 @@ const ratingRoutes = require("./routes/ratingRoutes");
 
 // ROUTES USE
 
-app.use(
-  "/api/auth",
-  authRoutes
-);
+app.use( "/api/auth",authRoutes);
 
-app.use(
-  "/api/orders",
-  orderRoutes
-);
+app.use( "/api/orders", orderRoutes);
 
-app.use(
-  "/api/customer",
-  customerRoutes
-);
+app.use("/api/support", supportRoutes);
 
-app.use(
-  "/api/rider",
-  riderRoutes
-);
+app.use( "/api/customer",customerRoutes);
 
-app.use(
-  "/api/rider-status-histories",
-  riderStatusHistoryRoutes
-);
+app.use( "/api/rider", riderRoutes);
 
-app.use(
-  "/api/payments",
-  paymentRoutes
-);
+app.use("/api/rider-status-histories", riderStatusHistoryRoutes);
 
-app.use(
-  "/api/admin",
-  adminRoutes
-);
+app.use("/api/payments",paymentRoutes);
 
-app.use(
-  "/api/ratings",
-  ratingRoutes
-);
+app.use("/api/admin", adminRoutes);
+
+app.use("/api/ratings", ratingRoutes);
 
 app.get(
   "/",
