@@ -153,10 +153,11 @@ app.use(
 const paymentRoutes = require("./routes/paymentRoutes");
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const supportRoutes = require("./routes/supportRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const riderRoutes = require("./routes/riderRoutes");
 const riderStatusHistoryRoutes = require("./routes/riderStatusHistoryRoutes");
-const adminRoutes = require("./routes/adminRoutes");
 const ratingRoutes = require("./routes/ratingRoutes");
 
 // ROUTES USE
