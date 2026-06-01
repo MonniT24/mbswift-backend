@@ -17,10 +17,11 @@ exports.sendSupportMessage =
       }
 
       let supportMessage =
-        await SupportMessage.create({
-          customer:req.user._id || req.user.id,
-          message
-        });
+  await SupportMessage.create({
+    customer:req.user._id || req.user.id,
+    message,
+    image:req.file ? req.file.path : ""
+  });
 
       supportMessage =
         await supportMessage.populate(

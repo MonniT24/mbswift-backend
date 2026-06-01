@@ -14,6 +14,11 @@ const supportMessageSchema =
         required:true
       },
 
+      image:{
+  type:String,
+  default:""
+},
+
       reply:{
         type:String,
         default:""

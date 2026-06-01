@@ -7,6 +7,9 @@ const router =
 const authMiddleware =
   require("../middleware/authMiddleware");
 
+  const upload =
+  require("../middleware/upload");
+
 const {
   sendSupportMessage,
   getSupportMessages,
@@ -16,6 +19,7 @@ const {
 router.post(
   "/",
   authMiddleware,
+  upload.single("image"),
   sendSupportMessage
 );
 
