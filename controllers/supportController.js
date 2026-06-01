@@ -18,7 +18,7 @@ exports.sendSupportMessage =
 
       const supportMessage =
         await SupportMessage.create({
-          customer:req.user.id,
+          customer:req.user._id || req.user.id,
           message
         });
 
