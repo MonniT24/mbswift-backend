@@ -150,6 +150,11 @@ app.use(
 app.use(
   express.json()
 );
+
+app.use(
+  "/uploads",
+  express.static("uploads")
+);
 // ROUTES IMPORTS
 
 const paymentRoutes = require("./routes/paymentRoutes");

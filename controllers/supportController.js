@@ -32,7 +32,9 @@ let supportMessage =
   await SupportMessage.create({
     customer: customerId,
     message: message || "",
-    image: req.file ? req.file.path : ""
+   image:req.file
+  ? `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g,"/")}`
+  : ""
   });
 
       supportMessage =
