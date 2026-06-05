@@ -14,15 +14,18 @@ const server = http.createServer(app);
 const io = new Server(
   server,
   {
-    cors: {
-      origin: "*",
-      methods: [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE"
-      ]
-    }
+   cors: {
+  origin: "*",
+  methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "OPTIONS"
+  ],
+  credentials: true
+}
   }
 );
 

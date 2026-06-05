@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+const mongoose =
+  require("mongoose");
 
 const supportMessageSchema =
   new mongoose.Schema(
@@ -11,13 +12,13 @@ const supportMessageSchema =
 
       message:{
         type:String,
-        required:true
+        default:""
       },
 
       image:{
-  type:String,
-  default:""
-},
+        type:String,
+        default:""
+      },
 
       reply:{
         type:String,
@@ -26,6 +27,10 @@ const supportMessageSchema =
 
       status:{
         type:String,
+        enum:[
+          "open",
+          "replied"
+        ],
         default:"open"
       }
     },

@@ -15,12 +15,24 @@ exports.sendSupportMessage =
     message:"Support message or image is required"
   });
 }
+const customerId =
+  req.user.id || req.user._id;
 
-   let supportMessage =
+if(!customerId){
+
+  return res.status(401).json({
+    message:"User not authenticated"
+  });
+}
+
+  const customerId =
+  req.user.id || req.user._id;
+
+let supportMessage =
   await SupportMessage.create({
-    customer:req.user._id || req.user.id,
-    message:message || "",
-    image:req.file ? req.file.path : ""
+    customer: customerId,
+    message: message || "",
+    image: req.file ? req.file.path : ""
   });
 
       supportMessage =
