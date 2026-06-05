@@ -1,41 +1,63 @@
 const SupportMessage =
   require("../models/SupportMessage");
 
+const cloudinary =
+  require("../config/cloudinary");
+
 // CUSTOMER SENDS SUPPORT MESSAGE
 exports.sendSupportMessage =
   async(req,res)=>{
 
     try{
 
-      const { message } = req.body;
+      const { message } =
+        req.body;
 
-     if(!message && !req.file){
+      if(!message && !req.file){
 
-  return res.status(400).json({
-    message:"Support message or image is required"
-  });
-}
-const customerId =
-  req.user.id || req.user._id;
+        return res.status(400).json({
+          message:"Support message or image is required"
+        });
+      }
 
-if(!customerId){
+      const customerId =
+        req.user.id || req.user._id;
 
-  return res.status(401).json({
-    message:"User not authenticated"
-  });
-}
+      if(!customerId){
 
-  const customerId =
-  req.user.id || req.user._id;
+        return res.status(401).json({
+          message:"User not authenticated"
+        });
+      }
 
-let supportMessage =
-  await SupportMessage.create({
-    customer: customerId,
-    message: message || "",
-   image:req.file
-  ? `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g,"/")}`
-  : ""
-  });
+      let imageUrl = "";
+
+      if(req.file){
+
+        const fileBase64 =
+          req.file.buffer.toString("base64");
+
+        const fileData =
+          `data:${req.file.mimetype};base64,${fileBase64}`;
+
+        const uploadedImage =
+          await cloudinary.uploader.upload(
+            fileData,
+            {
+              folder:"monnidrop/support"
+            }
+          );
+
+        imageUrl =
+          uploadedImage.secure_url;
+      }
+
+      let supportMessage =
+        await SupportMessage.create({
+          customer:customerId,
+          message:message || "",
+          image:imageUrl
+        });
 
       supportMessage =
         await supportMessage.populate(
@@ -59,6 +81,11 @@ let supportMessage =
       );
 
     }catch(error){
+
+      console.log(
+        "SUPPORT MESSAGE ERROR:",
+        error
+      );
 
       res.status(500).json({
         message:"Failed to send support message",
@@ -95,7 +122,8 @@ exports.replySupportMessage =
 
     try{
 
-      const { reply } = req.body;
+      const { reply } =
+        req.body;
 
       let message =
         await SupportMessage.findByIdAndUpdate(
