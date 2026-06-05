@@ -9,17 +9,17 @@ exports.sendSupportMessage =
 
       const { message } = req.body;
 
-      if(!message){
+     if(!message && !req.file){
 
-        return res.status(400).json({
-          message:"Support message is required"
-        });
-      }
+  return res.status(400).json({
+    message:"Support message or image is required"
+  });
+}
 
-      let supportMessage =
+   let supportMessage =
   await SupportMessage.create({
     customer:req.user._id || req.user.id,
-    message,
+    message:message || "",
     image:req.file ? req.file.path : ""
   });
 
