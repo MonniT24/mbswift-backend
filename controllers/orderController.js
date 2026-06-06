@@ -263,7 +263,11 @@ exports.createOrder =
 
       const {
         pickupLocation,
+        pickupLat,
+        pickupLng,
         dropoffLocation,
+        dropoffLat,
+        dropoffLng,
         distance,
         deliveryTime,
         total,
@@ -306,7 +310,35 @@ exports.createOrder =
 
           pickupLocation,
 
+          pickupLat:
+            pickupLat !== undefined &&
+            pickupLat !== null &&
+            pickupLat !== ""
+            ? Number(pickupLat)
+            : null,
+
+          pickupLng:
+            pickupLng !== undefined &&
+            pickupLng !== null &&
+            pickupLng !== ""
+            ? Number(pickupLng)
+            : null,
+
           dropoffLocation,
+
+          dropoffLat:
+            dropoffLat !== undefined &&
+            dropoffLat !== null &&
+            dropoffLat !== ""
+            ? Number(dropoffLat)
+            : null,
+
+          dropoffLng:
+            dropoffLng !== undefined &&
+            dropoffLng !== null &&
+            dropoffLng !== ""
+            ? Number(dropoffLng)
+            : null,
 
           items,
 
@@ -347,7 +379,7 @@ exports.createOrder =
 
         .populate(
           "rider",
-        "name phone profileImage motorNumber motorName latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage motorNumber motorName latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =

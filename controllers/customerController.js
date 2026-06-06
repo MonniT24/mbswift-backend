@@ -4,6 +4,9 @@ const Order =
 const User =
   require("../models/User");
 
+const bcrypt =
+  require("bcryptjs");
+
 
 // CREATE ORDER
 
@@ -223,19 +226,12 @@ async function saveCustomerProfile(
       ? req.body.emergencyContact
       : user.emergencyContact;
 
-     user.profileCompleted =
-  req.body.profileCompleted !== undefined
-  ? req.body.profileCompleted
-  : user.profileCompleted;
+    user.profileCompleted =
+      req.body.profileCompleted !== undefined
+      ? req.body.profileCompleted
+      : user.profileCompleted;
 
-console.log(
-  "PROFILE COMPLETED VALUE:",
-  req.body.profileCompleted
-);
-
-if(
-  user.role === "customer"
-){
+    if(user.role === "customer"){
 
       user.idType =
         undefined;
@@ -335,17 +331,58 @@ exports.updateCustomerSettings =
         });
       }
 
+      if(
+        req.body.password !== undefined &&
+        req.body.password !== ""
+      ){
+
+        if(req.body.password.length < 6){
+
+          return res.status(400).json({
+            message:"Password must be at least 6 characters"
+          });
+        }
+
+        const salt =
+          await bcrypt.genSalt(10);
+
+        user.password =
+          await bcrypt.hash(
+            req.body.password,
+            salt
+          );
+      }
+
+     console.log("SETTINGS BODY:", req.body);
+
+if(
+  req.body.phoneNumber !== undefined ||
+  req.body.phone !== undefined
+){
+
+  user.phone =
+    req.body.phoneNumber || req.body.phone;
+
+  console.log("NEW USER PHONE:", user.phone);
+}
+
+      if(req.body.email !== undefined){
+
+        user.email =
+          req.body.email;
+      }
+
       user.customerSettings = {
 
         phoneNumber:
           req.body.phoneNumber !== undefined
           ? req.body.phoneNumber
-          : user.customerSettings?.phoneNumber || "",
+          : user.customerSettings?.phoneNumber || user.phone || "",
 
         email:
           req.body.email !== undefined
           ? req.body.email
-          : user.customerSettings?.email || "",
+          : user.customerSettings?.email || user.email || "",
 
         country:
           req.body.country !== undefined
@@ -385,9 +422,15 @@ exports.updateCustomerSettings =
 
       await user.save();
 
+      const updatedUser =
+        await User.findById(
+          req.user._id
+        ).select("-password");
+
       res.json({
         message:"Customer settings saved successfully",
-        settings:user.customerSettings
+        settings:user.customerSettings,
+        user:updatedUser
       });
 
     }catch(err){

@@ -37,9 +37,29 @@ const orderSchema =
         required:true
       },
 
+      pickupLat:{
+        type:Number,
+        default:null
+      },
+
+      pickupLng:{
+        type:Number,
+        default:null
+      },
+
       dropoffLocation:{
         type:String,
         required:true
+      },
+
+      dropoffLat:{
+        type:Number,
+        default:null
+      },
+
+      dropoffLng:{
+        type:Number,
+        default:null
       },
 
       // ITEMS
@@ -102,38 +122,38 @@ const orderSchema =
       },
 
       cashCollectedByRider:{
-  type:Boolean,
-  default:false
-},
+        type:Boolean,
+        default:false
+      },
 
-cashCollectedAt:{
-  type:Date,
-  default:null
-},
+      cashCollectedAt:{
+        type:Date,
+        default:null
+      },
 
-cashSettledToAdmin:{
-  type:Boolean,
-  default:false
-},
+      cashSettledToAdmin:{
+        type:Boolean,
+        default:false
+      },
 
-cashSettledAt:{
-  type:Date,
-  default:null
-},
+      cashSettledAt:{
+        type:Date,
+        default:null
+      },
 
-cashSettledBy:{
-  type:
-    mongoose.Schema.Types.ObjectId,
+      cashSettledBy:{
+        type:
+          mongoose.Schema.Types.ObjectId,
 
-  ref:"User",
+        ref:"User",
 
-  default:null
-},
+        default:null
+      },
 
-cashSettlementNote:{
-  type:String,
-  default:""
-},
+      cashSettlementNote:{
+        type:String,
+        default:""
+      },
 
       paymentResult:{
 
