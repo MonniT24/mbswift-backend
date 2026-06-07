@@ -298,7 +298,7 @@ export default function Rider(){
         <div>
 
           <Brand>
-            MonniDrop Rider
+            MB Swift Rider
           </Brand>
 
           <Welcome>
