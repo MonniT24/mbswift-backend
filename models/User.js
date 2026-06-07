@@ -161,11 +161,16 @@ idNumber:{
       },
 
       motorNumber:{
-        type:String,
-        default:""
-      },
+  type:String,
+  default:""
+},
 
-      motorName:{
+motorName:{
+  type:String,
+  default:""
+},
+
+motorColor:{
   type:String,
   default:""
 },
