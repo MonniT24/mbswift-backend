@@ -217,6 +217,21 @@ app.use(
 );
 
 app.use(
+  "/api/auth/forgot-password-send-otp",
+  authLimiter
+);
+
+app.use(
+  "/api/auth/forgot-password-verify-otp",
+  authLimiter
+);
+
+app.use(
+  "/api/auth/reset-password",
+  authLimiter
+);
+
+app.use(
   "/uploads",
   express.static("uploads")
 );
