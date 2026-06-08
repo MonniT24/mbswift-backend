@@ -72,6 +72,8 @@ try{
 
   await sendEmail({
     to:process.env.SUPPORT_EMAIL,
+    cc:process.env.INFO_EMAIL,
+    bcc:process.env.ADMIN_EMAIL,
     subject:"New MB SWIFT Support Message",
     text:
       `New support message received\n\n` +

@@ -4,6 +4,14 @@ const express =
 const router =
   express.Router();
 
+  const multer =
+  require("multer");
+
+const upload =
+  multer({
+    storage:multer.memoryStorage()
+  });
+
 const authMiddleware =
   require("../middleware/authMiddleware");
 
@@ -41,6 +49,7 @@ router.put(
 router.put(
   "/:id/complete-delivery",
   authMiddleware,
+  upload.single("deliveryPhoto"),
   orderController.completeDeliveryWithCode
 );
 

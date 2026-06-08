@@ -219,6 +219,28 @@ const orderSchema =
         default:null
       },
 
+      // DELIVERY EVIDENCE
+
+deliveryPhoto:{
+  type:String,
+  default:""
+},
+
+deliveryLatitude:{
+  type:Number,
+  default:null
+},
+
+deliveryLongitude:{
+  type:Number,
+  default:null
+},
+
+deliveryEvidenceAt:{
+  type:Date,
+  default:null
+},
+
       // FRAUD / CANCEL MONITORING
 
       cancelCount:{

@@ -15,18 +15,22 @@ const transporter =
 
 async function sendEmail({
   to,
+  cc,
+  bcc,
   subject,
   text,
   html
 }){
 
   return transporter.sendMail({
-    from:process.env.EMAIL_FROM,
-    to,
-    subject,
-    text,
-    html
-  });
+  from:process.env.EMAIL_FROM,
+  to,
+  cc,
+  bcc,
+  subject,
+  text,
+  html
+});
 }
 
 module.exports = {

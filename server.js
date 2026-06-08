@@ -3,31 +3,55 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const http = require("http");
 
 const { Server } = require("socket.io");
 
 const app = express();
-const { sendEmail } =
-  require("./utils/emailService");
 
 const server = http.createServer(app);
+
+const allowedOrigins = [
+  "https://monnit24.onrender.com",
+  "https://www.mbswiftgh.com",
+  "http://localhost:3000"
+];
+
+const corsOptions = {
+  origin:function(origin,callback){
+
+    if(!origin){
+      return callback(null,true);
+    }
+
+    if(allowedOrigins.includes(origin)){
+      return callback(null,true);
+    }
+
+    return callback(
+      new Error("Not allowed by CORS")
+    );
+  },
+  credentials:true
+};
 
 const io = new Server(
   server,
   {
-   cors: {
-  origin: "*",
-  methods: [
-    "GET",
-    "POST",
-    "PUT",
-    "DELETE",
-    "PATCH",
-    "OPTIONS"
-  ],
-  credentials: true
-}
+    cors:{
+      origin:allowedOrigins,
+      methods:[
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS"
+      ],
+      credentials:true
+    }
   }
 );
 
@@ -40,7 +64,8 @@ app.set(
 
 const onlineUsers = new Map();
 
-function sendOnlineUsers() {
+function sendOnlineUsers(){
+
   io.emit(
     "onlineUsersUpdate",
     Array.from(
@@ -53,7 +78,8 @@ function sendOnlineUsers() {
 
 io.on(
   "connection",
-  (socket) => {
+  (socket)=>{
+
     console.log(
       "Socket connected:",
       socket.id
@@ -61,8 +87,9 @@ io.on(
 
     socket.on(
       "joinUserRoom",
-      (userId) => {
-        if (!userId) {
+      (userId)=>{
+
+        if(!userId){
           return;
         }
 
@@ -79,23 +106,24 @@ io.on(
 
     socket.on(
       "userOnline",
-      (data) => {
-        if (
+      (data)=>{
+
+        if(
           !data?.userId ||
           !data?.role
-        ) {
+        ){
           return;
         }
 
         onlineUsers.set(
           socket.id,
           {
-            socketId: socket.id,
-            userId: String(data.userId),
-            name: data.name || "Unknown",
-            phone: data.phone || "N/A",
-            role: data.role,
-            connectedAt: new Date().toISOString()
+            socketId:socket.id,
+            userId:String(data.userId),
+            name:data.name || "Unknown",
+            phone:data.phone || "N/A",
+            role:data.role,
+            connectedAt:new Date().toISOString()
           }
         );
 
@@ -105,7 +133,8 @@ io.on(
 
     socket.on(
       "requestOnlineUsers",
-      () => {
+      ()=>{
+
         socket.emit(
           "onlineUsersUpdate",
           Array.from(
@@ -117,7 +146,8 @@ io.on(
 
     socket.on(
       "riderLocation",
-      (data) => {
+      (data)=>{
+
         io.emit(
           "riderLocationUpdate",
           data
@@ -127,7 +157,8 @@ io.on(
 
     socket.on(
       "disconnect",
-      () => {
+      ()=>{
+
         onlineUsers.delete(
           socket.id
         );
@@ -146,17 +177,50 @@ io.on(
 // MIDDLEWARE
 
 app.use(
-  cors()
+  helmet()
 );
 
 app.use(
-  express.json()
+  cors(corsOptions)
+);
+
+app.use(
+  express.json({
+    limit:"2mb"
+  })
+);
+
+const authLimiter =
+  rateLimit({
+    windowMs:15 * 60 * 1000,
+    max:20,
+    standardHeaders:true,
+    legacyHeaders:false,
+    message:{
+      message:"Too many attempts. Please try again later."
+    }
+  });
+
+app.use(
+  "/api/auth/login",
+  authLimiter
+);
+
+app.use(
+  "/api/auth/send-registration-otp",
+  authLimiter
+);
+
+app.use(
+  "/api/auth/verify-registration-otp",
+  authLimiter
 );
 
 app.use(
   "/uploads",
   express.static("uploads")
 );
+
 // ROUTES IMPORTS
 
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -171,27 +235,55 @@ const ratingRoutes = require("./routes/ratingRoutes");
 
 // ROUTES USE
 
-app.use( "/api/auth",authRoutes);
+app.use(
+  "/api/auth",
+  authRoutes
+);
 
-app.use( "/api/orders", orderRoutes);
+app.use(
+  "/api/orders",
+  orderRoutes
+);
 
-app.use("/api/support", supportRoutes);
+app.use(
+  "/api/support",
+  supportRoutes
+);
 
-app.use( "/api/customer",customerRoutes);
+app.use(
+  "/api/customer",
+  customerRoutes
+);
 
-app.use( "/api/rider", riderRoutes);
+app.use(
+  "/api/rider",
+  riderRoutes
+);
 
-app.use("/api/rider-status-histories", riderStatusHistoryRoutes);
+app.use(
+  "/api/rider-status-histories",
+  riderStatusHistoryRoutes
+);
 
-app.use("/api/payments",paymentRoutes);
+app.use(
+  "/api/payments",
+  paymentRoutes
+);
 
-app.use("/api/admin", adminRoutes);
+app.use(
+  "/api/admin",
+  adminRoutes
+);
 
-app.use("/api/ratings", ratingRoutes);
+app.use(
+  "/api/ratings",
+  ratingRoutes
+);
 
 app.get(
   "/",
-  (req, res) => {
+  (req,res)=>{
+
     res.send(
       "MB SWIFT API Running..."
     );
@@ -205,14 +297,16 @@ mongoose
     process.env.MONGO_URI
   )
   .then(
-    () => {
+    ()=>{
+
       console.log(
         "MongoDB connected"
       );
 
       server.listen(
         process.env.PORT || 5000,
-        () => {
+        ()=>{
+
           console.log(
             `Server running on port ${
               process.env.PORT || 5000
@@ -223,7 +317,8 @@ mongoose
     }
   )
   .catch(
-    (err) => {
+    (err)=>{
+
       console.log(
         "MongoDB connection error:"
       );
