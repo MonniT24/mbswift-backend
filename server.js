@@ -8,6 +8,8 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
+const { sendEmail } =
+  require("./utils/emailService");
 
 const server = http.createServer(app);
 

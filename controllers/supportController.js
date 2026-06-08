@@ -1,6 +1,9 @@
 const SupportMessage =
   require("../models/SupportMessage");
 
+  const { sendEmail } =
+  require("../utils/emailService");
+
 const cloudinary =
   require("../config/cloudinary");
 
@@ -44,7 +47,7 @@ exports.sendSupportMessage =
           await cloudinary.uploader.upload(
             fileData,
             {
-              folder:"monnidrop/support"
+              folder:"mbswift/support"
             }
           );
 
@@ -60,13 +63,35 @@ exports.sendSupportMessage =
         });
 
       supportMessage =
-        await supportMessage.populate(
-          "customer",
-          "name email phone"
-        );
+  await supportMessage.populate(
+    "customer",
+    "name email phone"
+  );
 
-      const io =
-        req.app.get("io");
+try{
+
+  await sendEmail({
+    to:process.env.SUPPORT_EMAIL,
+    subject:"New MB SWIFT Support Message",
+    text:
+      `New support message received\n\n` +
+      `Customer: ${supportMessage.customer?.name || "Unknown"}\n` +
+      `Email: ${supportMessage.customer?.email || "Not provided"}\n` +
+      `Phone: ${supportMessage.customer?.phone || "Not provided"}\n\n` +
+      `Message:\n${supportMessage.message || "Image only"}\n\n` +
+      `Image: ${supportMessage.image || "No image"}`
+  });
+
+}catch(emailError){
+
+  console.log(
+    "SUPPORT EMAIL NOTIFICATION FAILED:",
+    emailError.message
+  );
+}
+
+const io =
+  req.app.get("io");
 
       if(io){
 
