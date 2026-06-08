@@ -193,7 +193,7 @@ app.get(
   "/",
   (req, res) => {
     res.send(
-      "MonniDrop API Running"
+      "MB SWIFT API Running..."
     );
   }
 );
