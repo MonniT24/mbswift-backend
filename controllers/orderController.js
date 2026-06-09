@@ -1,14 +1,14 @@
 const Order =
   require("../models/Order");
 
-  const RiderRating =
+const RiderRating =
   require("../models/RiderRating");
 
 const generateDeliveryCode =
   require("../utils/generateDeliveryCode");
 
 const cloudinary =
-  require("../config/cloudinary");  
+  require("../config/cloudinary");
 
 const sanitizeOrderForRider =
   (order)=>{
@@ -44,7 +44,7 @@ const isBlockedRider =
 const blockedRiderMessage =
   "Your rider account is suspended. You can login, but you cannot view, accept, update, or complete delivery orders.";
 
-  async function attachRiderRatingStatus(
+async function attachRiderRatingStatus(
   orders,
   customerId
 ){
@@ -109,7 +109,6 @@ exports.getOrders =
 
         orders =
           await Order.find({
-
             customer:req.user._id
           })
 
@@ -120,18 +119,18 @@ exports.getOrders =
 
           .populate(
             "rider",
-         "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+            "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
           )
 
           .sort({
             createdAt:-1
           });
 
-          orders =
-  await attachRiderRatingStatus(
-    orders,
-    req.user._id
-  );
+        orders =
+          await attachRiderRatingStatus(
+            orders,
+            req.user._id
+          );
 
       }else if(req.user.role === "rider"){
 
@@ -171,20 +170,20 @@ exports.getOrders =
             "name phone"
           )
 
-.populate(
-  "rider",
- "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
-)
+          .populate(
+            "rider",
+            "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+          )
 
           .sort({
             createdAt:-1
           });
 
-          orders =
-  await attachRiderRatingStatus(
-    orders,
-    req.user._id
-  );
+        orders =
+          await attachRiderRatingStatus(
+            orders,
+            req.user._id
+          );
 
       }else{
 
@@ -198,39 +197,38 @@ exports.getOrders =
 
           .populate(
             "rider",
-           "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+            "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
           )
 
           .sort({
             createdAt:-1
           });
 
-          const customerRatings =
-  await RiderRating.find({
-    customer:req.user._id
-  }).select("order");
+        const customerRatings =
+          await RiderRating.find({
+            customer:req.user._id
+          }).select("order");
 
-const ratedOrderIds =
-  customerRatings.map((rating)=>
-    rating.order?.toString()
-  );
+        const ratedOrderIds =
+          customerRatings.map((rating)=>
+            rating.order?.toString()
+          );
 
-orders =
-  orders.map((order)=>{
+        orders =
+          orders.map((order)=>{
 
-    const plainOrder =
-      order.toObject
-      ? order.toObject()
-      : order;
+            const plainOrder =
+              order.toObject
+              ? order.toObject()
+              : order;
 
-    return {
-      ...plainOrder,
-      riderRated:ratedOrderIds.includes(
-        plainOrder._id.toString()
-      )
-    };
-  });
-  
+            return {
+              ...plainOrder,
+              riderRated:ratedOrderIds.includes(
+                plainOrder._id.toString()
+              )
+            };
+          });
       }
 
       res.json(
@@ -382,13 +380,28 @@ exports.createOrder =
 
         .populate(
           "rider",
-         "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
         req.app.get("io");
 
       if(io){
+
+        io.emit(
+          "newOrderAlert",
+          {
+            orderId:created._id,
+            pickupLocation:created.pickupLocation,
+            dropoffLocation:created.dropoffLocation,
+            total:created.total,
+            paymentMethod:created.paymentMethod,
+            distance:created.distance,
+            deliveryTime:created.deliveryTime,
+            createdAt:created.createdAt,
+            customer:created.customer
+          }
+        );
 
         io.emit(
           "orderUpdated"
@@ -525,8 +538,6 @@ exports.updateOrder =
           req.user._id;
       }
 
-      // FRAUD / CANCEL TRACKING
-
       if(req.body.status === "cancelled"){
 
         order.cancelCount += 1;
@@ -586,7 +597,7 @@ exports.updateOrder =
 
         .populate(
           "rider",
-        "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -682,7 +693,7 @@ exports.updateOrderToPaid =
 
         .populate(
           "rider",
-         "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -801,89 +812,87 @@ exports.completeDeliveryWithCode =
 
       if(!req.file){
 
-  return res.status(400)
-  .json({
-    message:"Delivery photo is required"
-  });
-}
+        return res.status(400)
+        .json({
+          message:"Delivery photo is required"
+        });
+      }
 
-const {
-  deliveryLatitude,
-  deliveryLongitude
-} = req.body;
+      const {
+        deliveryLatitude,
+        deliveryLongitude
+      } = req.body;
 
-if(
-  !deliveryLatitude ||
-  !deliveryLongitude
-){
+      if(
+        !deliveryLatitude ||
+        !deliveryLongitude
+      ){
 
-  return res.status(400)
-  .json({
-    message:"Delivery GPS location is required"
-  });
-}
+        return res.status(400)
+        .json({
+          message:"Delivery GPS location is required"
+        });
+      }
 
-const fileBase64 =
-  req.file.buffer.toString("base64");
+      const fileBase64 =
+        req.file.buffer.toString("base64");
 
-const fileData =
-  `data:${req.file.mimetype};base64,${fileBase64}`;
+      const fileData =
+        `data:${req.file.mimetype};base64,${fileBase64}`;
 
-const uploadedDeliveryPhoto =
-  await cloudinary.uploader.upload(
-    fileData,
-    {
-      folder:"mbswift_delivery_evidence"
-    }
-  );
+      const uploadedDeliveryPhoto =
+        await cloudinary.uploader.upload(
+          fileData,
+          {
+            folder:"mbswift_delivery_evidence"
+          }
+        );
 
-order.deliveryPhoto =
-  uploadedDeliveryPhoto.secure_url;
+      order.deliveryPhoto =
+        uploadedDeliveryPhoto.secure_url;
 
-order.deliveryLatitude =
-  Number(deliveryLatitude);
+      order.deliveryLatitude =
+        Number(deliveryLatitude);
 
-order.deliveryLongitude =
-  Number(deliveryLongitude);
+      order.deliveryLongitude =
+        Number(deliveryLongitude);
 
-order.deliveryEvidenceAt =
-  new Date();
+      order.deliveryEvidenceAt =
+        new Date();
 
-     order.status =
-  "delivered";
+      order.status =
+        "delivered";
 
-order.deliveryCodeVerified =
-  true;
+      order.deliveryCodeVerified =
+        true;
 
-order.deliveredAt =
-  new Date();
+      order.deliveredAt =
+        new Date();
 
-// CASH ON DELIVERY PAYMENT CONFIRMATION
+      console.log(
+        "PAYMENT METHOD BEFORE CASH CHECK:",
+        order.paymentMethod
+      );
 
-console.log(
-  "PAYMENT METHOD BEFORE CASH CHECK:",
-  order.paymentMethod
-);
+      if(
+        order.paymentMethod === "cash"
+      ){
 
-if(
-  order.paymentMethod === "cash"
-){
+        order.paymentStatus =
+          "paid";
 
-  order.paymentStatus =
-    "paid";
+        order.isPaid =
+          true;
 
-  order.isPaid =
-    true;
+        order.paidAt =
+          new Date();
 
-    order.paidAt =
-  new Date();
+        order.cashCollectedByRider =
+          true;
 
-  order.cashCollectedByRider =
-    true;
-
-  order.cashCollectedAt =
-    new Date();
-}
+        order.cashCollectedAt =
+          new Date();
+      }
 
       await order.save();
 
@@ -899,7 +908,7 @@ if(
 
         .populate(
           "rider",
-         "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       const io =
@@ -1036,7 +1045,7 @@ exports.sendMessage =
 
         .populate(
           "rider",
-        "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
+          "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
         );
 
       if(req.user.role === "rider"){
