@@ -12,13 +12,41 @@ const {
   checkPhoneOtp
 } = require("../utils/twilioVerify");
 
+function createAuthToken(user){
+
+  return jwt.sign(
+    {
+      _id:user._id,
+      id:user._id,
+      role:user.role
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn:"7d"
+    }
+  );
+}
+
+function cleanUser(user){
+
+  return {
+    _id:user._id,
+    name:user.name,
+    email:user.email,
+    phone:user.phone,
+    role:user.role,
+    status:user.status,
+    gender:user.gender,
+    dob:user.dob,
+    phoneVerified:user.phoneVerified,
+    profileCompleted:user.profileCompleted
+  };
+}
+
 // REGISTER
 
 exports.register =
-  async (
-    req,
-    res
-  ) => {
+  async(req,res)=>{
 
     try{
 
@@ -34,12 +62,9 @@ exports.register =
       } = req.body;
 
       const existing =
-        await User.findOne({
-          email
-        });
+        await User.findOne({ email });
 
       if(existing){
-
         return res.status(400).json({
           message:"User already exists"
         });
@@ -48,14 +73,12 @@ exports.register =
       if(role === "customer"){
 
         if(!phone){
-
           return res.status(400).json({
             message:"Mobile number is required"
           });
         }
 
         if(!phoneVerificationToken){
-
           return res.status(400).json({
             message:"Please verify your mobile number first"
           });
@@ -70,7 +93,6 @@ exports.register =
             );
 
           if(decoded.phone !== phone){
-
             return res.status(400).json({
               message:"Verified phone number does not match"
             });
@@ -85,10 +107,7 @@ exports.register =
       }
 
       const hashed =
-        await bcrypt.hash(
-          password,
-          10
-        );
+        await bcrypt.hash(password,10);
 
       const user =
         await User.create({
@@ -106,32 +125,12 @@ exports.register =
         });
 
       const token =
-        jwt.sign(
-          {
-            _id:user._id,
-            id:user._id,
-            role:user.role
-          },
-          process.env.JWT_SECRET,
-          {
-            expiresIn:"7d"
-          }
-        );
+        createAuthToken(user);
 
       res.status(201).json({
         message:"Registered successfully",
         token,
-        user:{
-          _id:user._id,
-          name:user.name,
-          email:user.email,
-          phone:user.phone,
-          gender:user.gender,
-          dob:user.dob,
-          role:user.role,
-          phoneVerified:user.phoneVerified,
-          profileCompleted:user.profileCompleted
-        }
+        user:cleanUser(user)
       });
 
     }catch(err){
@@ -147,10 +146,7 @@ exports.register =
 // LOGIN
 
 exports.login =
-  async (
-    req,
-    res
-  ) => {
+  async(req,res)=>{
 
     try{
 
@@ -160,12 +156,9 @@ exports.login =
       } = req.body;
 
       const user =
-        await User.findOne({
-          email
-        });
+        await User.findOne({ email });
 
       if(!user){
-
         return res.status(400).json({
           message:"Invalid credentials"
         });
@@ -178,47 +171,144 @@ exports.login =
         );
 
       if(!match){
-
         return res.status(400).json({
           message:"Invalid credentials"
         });
       }
 
+      if(user.role === "admin"){
+
+        if(!user.phone){
+          return res.status(400).json({
+            message:"Admin account has no phone number for 2FA"
+          });
+        }
+
+        await sendPhoneOtp(user.phone);
+
+        const adminLoginToken =
+          jwt.sign(
+            {
+              userId:user._id,
+              email:user.email,
+              role:user.role
+            },
+            process.env.ADMIN_LOGIN_JWT_SECRET ||
+            process.env.JWT_SECRET,
+            {
+              expiresIn:"10m"
+            }
+          );
+
+        return res.json({
+          requiresAdminOtp:true,
+          message:"Admin OTP sent to your phone",
+          adminLoginToken
+        });
+      }
+
       const token =
-        jwt.sign(
-          {
-            _id:user._id,
-            id:user._id,
-            role:user.role
-          },
-          process.env.JWT_SECRET,
-          {
-            expiresIn:"7d"
-          }
-        );
+        createAuthToken(user);
 
       res.json({
         token,
-        user:{
-          _id:user._id,
-          name:user.name,
-          email:user.email,
-          phone:user.phone,
-          role:user.role,
-          status:user.status,
-          gender:user.gender,
-          dob:user.dob,
-          phoneVerified:user.phoneVerified,
-          profileCompleted:user.profileCompleted
-        }
+        user:cleanUser(user)
       });
 
     }catch(err){
 
-      console.log(err);
+      console.log(
+        "LOGIN ERROR:",
+        err.message
+      );
 
       res.status(500).json({
         message:err.message
+      });
+    }
+  };
+
+// VERIFY ADMIN LOGIN OTP
+
+exports.verifyAdminLoginOtp =
+  async(req,res)=>{
+
+    try{
+
+      const {
+        adminLoginToken,
+        otp
+      } = req.body;
+
+      if(!adminLoginToken || !otp){
+        return res.status(400).json({
+          message:"Admin login token and OTP are required"
+        });
+      }
+
+      let decoded;
+
+      try{
+
+        decoded =
+          jwt.verify(
+            adminLoginToken,
+            process.env.ADMIN_LOGIN_JWT_SECRET ||
+            process.env.JWT_SECRET
+          );
+
+      }catch(error){
+
+        return res.status(400).json({
+          message:"Admin login session expired. Please login again"
+        });
+      }
+
+      const user =
+        await User.findById(decoded.userId);
+
+      if(!user || user.role !== "admin"){
+        return res.status(403).json({
+          message:"Admin account not found"
+        });
+      }
+
+      if(!user.phone){
+        return res.status(400).json({
+          message:"Admin account has no phone number"
+        });
+      }
+
+      const verification =
+        await checkPhoneOtp(
+          user.phone,
+          otp
+        );
+
+      if(verification.status !== "approved"){
+        return res.status(400).json({
+          message:"Invalid admin OTP"
+        });
+      }
+
+      const token =
+        createAuthToken(user);
+
+      res.json({
+        message:"Admin login verified",
+        token,
+        user:cleanUser(user)
+      });
+
+    }catch(error){
+
+      console.log(
+        "VERIFY ADMIN OTP ERROR:",
+        error.message
+      );
+
+      res.status(500).json({
+        message:"Admin OTP verification failed"
       });
     }
   };
@@ -230,19 +320,15 @@ exports.sendRegistrationOtp =
 
     try{
 
-      const { phone } =
-        req.body;
+      const { phone } = req.body;
 
       if(!phone){
-
         return res.status(400).json({
           message:"Mobile number is required"
         });
       }
 
-      await sendPhoneOtp(
-        phone
-      );
+      await sendPhoneOtp(phone);
 
       res.json({
         message:"OTP sent successfully"
@@ -268,26 +354,18 @@ exports.verifyRegistrationOtp =
 
     try{
 
-      const { phone, otp } =
-        req.body;
+      const { phone, otp } = req.body;
 
       if(!phone || !otp){
-
         return res.status(400).json({
           message:"Phone number and OTP are required"
         });
       }
 
       const verification =
-        await checkPhoneOtp(
-          phone,
-          otp
-        );
+        await checkPhoneOtp(phone,otp);
 
-      if(
-        verification.status !== "approved"
-      ){
-
+      if(verification.status !== "approved"){
         return res.status(400).json({
           message:"Invalid OTP"
         });
@@ -325,39 +403,30 @@ exports.sendForgotPasswordOtp =
 
     try{
 
-      const {
-        email
-      } = req.body;
+      const { email } = req.body;
 
       if(!email){
-
         return res.status(400).json({
           message:"Email is required"
         });
       }
 
       const user =
-        await User.findOne({
-          email
-        });
+        await User.findOne({ email });
 
       if(!user){
-
         return res.status(404).json({
           message:"No account found with this email"
         });
       }
 
       if(!user.phone){
-
         return res.status(400).json({
           message:"This account has no phone number"
         });
       }
 
-      await sendPhoneOtp(
-        user.phone
-      );
+      await sendPhoneOtp(user.phone);
 
       res.json({
         message:"OTP sent to your registered phone number"
@@ -383,32 +452,24 @@ exports.verifyForgotPasswordOtp =
 
     try{
 
-      const {
-        email,
-        otp
-      } = req.body;
+      const { email, otp } = req.body;
 
       if(!email || !otp){
-
         return res.status(400).json({
           message:"Email and OTP are required"
         });
       }
 
       const user =
-        await User.findOne({
-          email
-        });
+        await User.findOne({ email });
 
       if(!user){
-
         return res.status(404).json({
           message:"No account found with this email"
         });
       }
 
       if(!user.phone){
-
         return res.status(400).json({
           message:"This account has no phone number"
         });
@@ -420,10 +481,7 @@ exports.verifyForgotPasswordOtp =
           otp
         );
 
-      if(
-        verification.status !== "approved"
-      ){
-
+      if(verification.status !== "approved"){
         return res.status(400).json({
           message:"Invalid OTP"
         });
@@ -473,14 +531,12 @@ exports.resetPassword =
       } = req.body;
 
       if(!resetToken || !newPassword){
-
         return res.status(400).json({
           message:"Reset token and new password are required"
         });
       }
 
       if(newPassword.length < 6){
-
         return res.status(400).json({
           message:"Password must be at least 6 characters"
         });
@@ -505,22 +561,16 @@ exports.resetPassword =
       }
 
       const user =
-        await User.findById(
-          decoded.userId
-        );
+        await User.findById(decoded.userId);
 
       if(!user){
-
         return res.status(404).json({
           message:"User not found"
         });
       }
 
       const hashedPassword =
-        await bcrypt.hash(
-          newPassword,
-          10
-        );
+        await bcrypt.hash(newPassword,10);
 
       user.password =
         hashedPassword;

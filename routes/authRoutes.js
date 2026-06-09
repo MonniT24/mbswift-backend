@@ -9,7 +9,8 @@ const {
   verifyRegistrationOtp,
   sendForgotPasswordOtp,
   verifyForgotPasswordOtp,
-  resetPassword
+  resetPassword,
+  verifyAdminLoginOtp
 } = require("../controllers/authController");
 
 // REGISTER OTP
@@ -36,6 +37,11 @@ router.post(
 router.post(
   "/login",
   login
+);
+
+router.post(
+  "/verify-admin-login-otp",
+  verifyAdminLoginOtp
 );
 
 // FORGOT PASSWORD OTP
