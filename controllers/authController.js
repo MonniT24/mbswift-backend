@@ -7,6 +7,9 @@ const bcrypt =
 const jwt =
   require("jsonwebtoken");
 
+  const cloudinary =
+  require("../config/cloudinary");
+
 const {
   sendPhoneOtp,
   checkPhoneOtp
@@ -143,6 +146,132 @@ exports.register =
     }
   };
 
+  // REGISTER RIDER APPLICATION
+
+exports.registerRider =
+  async(req,res)=>{
+
+    try{
+
+      const {
+        name,
+        phone,
+        email,
+        password,
+        ghanaCardNumber,
+        motorName,
+        motorNumber,
+        motorColor,
+        emergencyContactName,
+        emergencyContactPhone
+      } = req.body;
+
+      if(
+        !name ||
+        !phone ||
+        !password ||
+        !ghanaCardNumber ||
+        !motorName ||
+        !motorNumber ||
+        !motorColor ||
+        !emergencyContactName ||
+        !emergencyContactPhone
+      ){
+        return res.status(400).json({
+          message:"Please fill all required rider application fields"
+        });
+      }
+
+      if(!req.file){
+  return res.status(400).json({
+    message:"Please upload your Ghana Card"
+  });
+}
+
+      const existingPhone =
+        await User.findOne({ phone });
+
+      if(existingPhone){
+        return res.status(400).json({
+          message:"Phone number already registered"
+        });
+      }
+
+      if(email){
+
+        const existingEmail =
+          await User.findOne({ email });
+
+        if(existingEmail){
+          return res.status(400).json({
+            message:"Email already registered"
+          });
+        }
+      }
+
+      const fileBase64 =
+  `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+const uploadResult =
+  await cloudinary.uploader.upload(
+    fileBase64,
+    {
+      folder:"mbswift/rider-ghana-cards",
+      resource_type:"auto"
+    }
+  );
+
+      const hashed =
+        await bcrypt.hash(password,10);
+
+      const rider =
+        await User.create({
+          name,
+          phone,
+          email:email || "",
+          password:hashed,
+          role:"rider",
+          riderApprovalStatus:"pending",
+          status:"offline",
+          riderAccountStatus:"active",
+          ghanaCardNumber,
+          ghanaCardImage:uploadResult.secure_url,
+          idType:"Ghana Card",
+          idNumber:ghanaCardNumber,
+          motorName,
+          motorNumber,
+          motorColor,
+          emergencyContactName,
+          emergencyContactPhone,
+          phoneVerified:false,
+          profileCompleted:true
+        });
+
+      res.status(201).json({
+        message:"Rider application submitted successfully. Waiting for admin approval.",
+        rider:{
+          _id:rider._id,
+          name:rider.name,
+          phone:rider.phone,
+          email:rider.email,
+          role:rider.role,
+          riderApprovalStatus:rider.riderApprovalStatus
+        }
+      });
+
+    }catch(err){
+
+      console.log(
+        "REGISTER RIDER ERROR:",
+        err.message
+      );
+
+      res.status(500).json({
+        message:err.message
+      });
+    }
+  };
+
 // LOGIN
 
 exports.login =
@@ -175,6 +304,15 @@ exports.login =
           message:"Invalid credentials"
         });
       }
+
+      if(
+  user.role === "rider" &&
+  user.riderApprovalStatus !== "approved"
+){
+  return res.status(403).json({
+    message:"Your rider account is still pending admin approval"
+  });
+}
 
       if(user.role === "admin"){
 

@@ -13,62 +13,28 @@ const userSchema =
 
       email:{
         type:String,
-        required:true,
-        unique:true
-      },
-
-      phone:{
-  type:String,
-  trim:true
-   },
-
-   gender:{
-  type:String,
-  enum:[
-    "Male",
-    "Female",
-    "Other"
-  ]
-},
-
-dob:{
-  type:Date
-},
-
-    phoneVerified:{
-    type:Boolean,
-    default:false
-    },
-
-    profileCompleted:{
-  type:Boolean,
-  default:false
-},
-
-      idType:{
-      type:String,
-     enum:[
-    "Ghana Card",
-    "Driver's License",
-    "Passport",
-    "Voter ID",
-    "Other"
-  ],
-  default:""
-},
-
-idNumber:{
-  type:String,
-  trim:true,
-  default:""
-},
-
-      dob:{
-        type:String,
+        trim:true,
+        lowercase:true,
         default:""
       },
 
-      address:{
+      phone:{
+        type:String,
+        trim:true,
+        default:""
+      },
+
+      phoneVerified:{
+        type:Boolean,
+        default:false
+      },
+
+      profileCompleted:{
+        type:Boolean,
+        default:false
+      },
+
+      dob:{
         type:String,
         default:""
       },
@@ -79,12 +45,28 @@ idNumber:{
           "",
           "Female",
           "Male",
+          "Other",
           "Prefer not to say"
         ],
         default:""
       },
 
+      address:{
+        type:String,
+        default:""
+      },
+
       emergencyContact:{
+        type:String,
+        default:""
+      },
+
+      emergencyContactName:{
+        type:String,
+        default:""
+      },
+
+      emergencyContactPhone:{
         type:String,
         default:""
       },
@@ -96,17 +78,50 @@ idNumber:{
 
       role:{
         type:String,
-
         enum:[
           "customer",
           "rider",
           "admin"
         ],
-
         default:"customer"
       },
 
       profileImage:{
+        type:String,
+        default:""
+      },
+
+      profilePhoto:{
+        type:String,
+        default:""
+      },
+
+      idType:{
+        type:String,
+        enum:[
+          "",
+          "Ghana Card",
+          "Driver's License",
+          "Passport",
+          "Voter ID",
+          "Other"
+        ],
+        default:""
+      },
+
+      idNumber:{
+        type:String,
+        trim:true,
+        default:""
+      },
+
+      ghanaCardNumber:{
+        type:String,
+        trim:true,
+        default:""
+      },
+
+      ghanaCardImage:{
         type:String,
         default:""
       },
@@ -161,72 +176,49 @@ idNumber:{
       },
 
       motorNumber:{
-  type:String,
-  default:""
-},
+        type:String,
+        default:""
+      },
 
-motorName:{
-  type:String,
-  default:""
-},
+      motorName:{
+        type:String,
+        default:""
+      },
 
-motorColor:{
-  type:String,
-  default:""
-},
+      motorColor:{
+        type:String,
+        default:""
+      },
 
-     idType:{
-  type:String,
-  enum:[
-    "Ghana Card",
-    "Passport",
-    "Voter ID",
-    "Driver License"
-  ],
-  default:undefined
-},
-
-idNumber:{
-  type:String,
-  trim:true,
-  default:""
-},
-
-      // RIDER LIVE WORK STATUS
-      // available = can accept orders
-      // busy = currently handling order
-      // offline = not available
-      // suspended = blocked from delivery actions
+      riderApprovalStatus:{
+        type:String,
+        enum:[
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        default:"pending"
+      },
 
       status:{
         type:String,
-
         enum:[
           "available",
           "busy",
           "offline",
           "suspended"
         ],
-
         default:"available"
       },
 
-      // RIDER ACCOUNT STATUS FOR ADMIN CONTROL
-      // active = normal rider
-      // temporary_suspended = rider can login but cannot accept orders
-      // permanent_suspended = rider can login but remains blocked
-      // reinstated = rider restored after suspension
-
       riderAccountStatus:{
         type:String,
-
         enum:[
           "active",
           "temporary_suspended",
           "permanent_suspended",
           "reinstated"
         ],
-
         default:"active"
       },
 
@@ -244,9 +236,6 @@ idNumber:{
         type:Date,
         default:null
       },
-
-      // RIDER NOTIFICATION INBOX
-      // This stores admin messages like suspension, reinstatement, warnings.
 
       notifications:[
         {
@@ -267,7 +256,6 @@ idNumber:{
 
           accountStatus:{
             type:String,
-
             enum:[
               "",
               "active",
@@ -275,7 +263,6 @@ idNumber:{
               "permanent_suspended",
               "reinstated"
             ],
-
             default:""
           },
 
@@ -291,8 +278,6 @@ idNumber:{
         }
       ],
 
-      // LIVE LOCATION
-
       latitude:{
         type:Number,
         default:0
@@ -303,17 +288,11 @@ idNumber:{
         default:0
       },
 
-      // CURRENT ORDER
-
       currentOrder:{
         type:mongoose.Schema.Types.ObjectId,
-
         ref:"Order",
-
         default:null
       },
-
-      // LAST ACTIVE
 
       lastSeen:{
         type:Date,

@@ -10,13 +10,13 @@ const authMiddleware =
 const User =
   require("../models/User");
 
-  const RiderStatusHistory =
+const RiderStatusHistory =
   require("../models/RiderStatusHistory");
 
 const RiderRating =
   require("../models/RiderRating");
 
-  const adminController =
+const adminController =
   require("../controllers/adminController");
 
 function checkAdmin(req,res,next){
@@ -194,11 +194,11 @@ async function updateRiderStatus({
   const cleanReason =
     reason.trim();
 
-    const oldAccountStatus =
-  rider.riderAccountStatus || "";
+  const oldAccountStatus =
+    rider.riderAccountStatus || "";
 
-const oldWorkStatus =
-  rider.status || "";
+  const oldWorkStatus =
+    rider.status || "";
 
   const finalMessage =
     `${statusInfo.message}\n\nReason: ${cleanReason}`;
@@ -265,21 +265,14 @@ const oldWorkStatus =
   await rider.save();
 
   await RiderStatusHistory.create({
-
-  rider:rider._id,
-
-  admin:req.user?._id || null,
-
-  accountStatus:accountStatus,
-
-  previousStatus:oldAccountStatus || oldWorkStatus,
-
-  newStatus:rider.status,
-
-  reason:cleanReason,
-
-  message:finalMessage
-});
+    rider:rider._id,
+    admin:req.user?._id || null,
+    accountStatus:accountStatus,
+    previousStatus:oldAccountStatus || oldWorkStatus,
+    newStatus:rider.status,
+    reason:cleanReason,
+    message:finalMessage
+  });
 
   await sendRiderNotification(
     req,
@@ -294,6 +287,128 @@ const oldWorkStatus =
     rider:removePassword(rider)
   });
 }
+
+router.get(
+  "/rider-applications",
+  authMiddleware,
+  checkAdmin,
+  async(req,res)=>{
+
+    try{
+
+      const riders =
+        await User.find({
+          role:"rider",
+          riderApprovalStatus:"pending"
+        }).select("-password")
+        .sort({
+          createdAt:-1
+        });
+
+      res.status(200).json({
+        riders
+      });
+
+    }catch(err){
+
+      console.log(
+        "GET RIDER APPLICATIONS ERROR:",
+        err
+      );
+
+      res.status(500).json({
+        message:"Failed to load rider applications"
+      });
+    }
+  }
+);
+
+router.put(
+  "/rider-applications/:riderId",
+  authMiddleware,
+  checkAdmin,
+  async(req,res)=>{
+
+    try{
+
+      const {
+        riderApprovalStatus
+      } = req.body;
+
+      if(
+        ![
+          "approved",
+          "rejected"
+        ].includes(
+          riderApprovalStatus
+        )
+      ){
+        return res.status(400)
+        .json({
+          message:"Invalid approval status"
+        });
+      }
+
+      const rider =
+        await User.findById(
+          req.params.riderId
+        );
+
+      if(!rider){
+        return res.status(404)
+        .json({
+          message:"Rider not found"
+        });
+      }
+
+      if(rider.role !== "rider"){
+        return res.status(400)
+        .json({
+          message:"This user is not a rider"
+        });
+      }
+
+      rider.riderApprovalStatus =
+        riderApprovalStatus;
+
+      if(
+        riderApprovalStatus === "approved"
+      ){
+        rider.status =
+          "available";
+
+        rider.riderAccountStatus =
+          "active";
+      }
+
+      if(
+        riderApprovalStatus === "rejected"
+      ){
+        rider.status =
+          "offline";
+      }
+
+      await rider.save();
+
+      res.status(200).json({
+        message:
+          `Rider ${riderApprovalStatus} successfully`,
+        rider:removePassword(rider)
+      });
+
+    }catch(err){
+
+      console.log(
+        "UPDATE RIDER APPLICATION ERROR:",
+        err
+      );
+
+      res.status(500).json({
+        message:"Failed to update rider application"
+      });
+    }
+  }
+);
 
 router.put(
   "/riders/:riderId/account-status",

@@ -1,6 +1,12 @@
 const express = require("express");
 
+const multer = require("multer");
+
 const router = express.Router();
+
+const upload = multer({
+  storage:multer.memoryStorage()
+});
 
 const {
   register,
@@ -10,7 +16,8 @@ const {
   sendForgotPasswordOtp,
   verifyForgotPasswordOtp,
   resetPassword,
-  verifyAdminLoginOtp
+  verifyAdminLoginOtp,
+  registerRider,
 } = require("../controllers/authController");
 
 // REGISTER OTP
@@ -30,6 +37,12 @@ router.post(
 router.post(
   "/register",
   register
+);
+
+router.post(
+  "/register-rider",
+  upload.single("ghanaCardImage"),
+  registerRider
 );
 
 // LOGIN
