@@ -7,7 +7,7 @@ const bcrypt =
 const jwt =
   require("jsonwebtoken");
 
-  const cloudinary =
+const cloudinary =
   require("../config/cloudinary");
 
 const {
@@ -44,6 +44,30 @@ function cleanUser(user){
     phoneVerified:user.phoneVerified,
     profileCompleted:user.profileCompleted
   };
+}
+
+function normalizePhone(value){
+
+  if(!value){
+    return "";
+  }
+
+  const cleaned =
+    String(value).replace(/\D/g,"");
+
+  if(cleaned.startsWith("233")){
+    return `+${cleaned}`;
+  }
+
+  if(cleaned.startsWith("0")){
+    return `+233${cleaned.slice(1)}`;
+  }
+
+  if(cleaned.length === 9){
+    return `+233${cleaned}`;
+  }
+
+  return value;
 }
 
 // REGISTER
@@ -146,7 +170,7 @@ exports.register =
     }
   };
 
-  // REGISTER RIDER APPLICATION
+// REGISTER RIDER APPLICATION
 
 exports.registerRider =
   async(req,res)=>{
@@ -183,10 +207,10 @@ exports.registerRider =
       }
 
       if(!req.file){
-  return res.status(400).json({
-    message:"Please upload your Ghana Card"
-  });
-}
+        return res.status(400).json({
+          message:"Please upload your Ghana Card"
+        });
+      }
 
       const existingPhone =
         await User.findOne({ phone });
@@ -210,16 +234,16 @@ exports.registerRider =
       }
 
       const fileBase64 =
-  `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+        `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
 
-const uploadResult =
-  await cloudinary.uploader.upload(
-    fileBase64,
-    {
-      folder:"mbswift/rider-ghana-cards",
-      resource_type:"auto"
-    }
-  );
+      const uploadResult =
+        await cloudinary.uploader.upload(
+          fileBase64,
+          {
+            folder:"mbswift/rider-ghana-cards",
+            resource_type:"auto"
+          }
+        );
 
       const hashed =
         await bcrypt.hash(password,10);
@@ -243,7 +267,7 @@ const uploadResult =
           motorColor,
           emergencyContactName,
           emergencyContactPhone,
-          phoneVerified:false,
+          phoneVerified:true,
           profileCompleted:true
         });
 
@@ -281,11 +305,36 @@ exports.login =
 
       const {
         email,
+        login,
         password
       } = req.body;
 
+      const loginValue =
+        String(login || email || "").trim();
+
+      if(!loginValue || !password){
+        return res.status(400).json({
+          message:"Email or phone number and password are required"
+        });
+      }
+
+      const normalizedPhone =
+        normalizePhone(loginValue);
+
       const user =
-        await User.findOne({ email });
+        await User.findOne({
+          $or:[
+            {
+              email:loginValue.toLowerCase()
+            },
+            {
+              phone:loginValue
+            },
+            {
+              phone:normalizedPhone
+            }
+          ]
+        });
 
       if(!user){
         return res.status(400).json({
@@ -306,13 +355,13 @@ exports.login =
       }
 
       if(
-  user.role === "rider" &&
-  user.riderApprovalStatus !== "approved"
-){
-  return res.status(403).json({
-    message:"Your rider account is still pending admin approval"
-  });
-}
+        user.role === "rider" &&
+        user.riderApprovalStatus !== "approved"
+      ){
+        return res.status(403).json({
+          message:"Your rider account is still pending admin approval"
+        });
+      }
 
       if(user.role === "admin"){
 
