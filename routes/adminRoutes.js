@@ -1,6 +1,9 @@
 const express =
   require("express");
 
+  const bcrypt =
+  require("bcryptjs");
+
 const router =
   express.Router();
 
@@ -676,6 +679,78 @@ router.put(
   authMiddleware,
   checkAdmin,
   adminController.markCashAsSettled
+);
+
+router.put(
+  "/change-password",
+  authMiddleware,
+  checkAdmin,
+  async(req,res)=>{
+
+    try{
+
+      const {
+        currentPassword,
+        newPassword
+      } = req.body;
+
+      if(!currentPassword || !newPassword){
+        return res.status(400).json({
+          message:"Current password and new password are required"
+        });
+      }
+
+      if(newPassword.length < 6){
+        return res.status(400).json({
+          message:"New password must be at least 6 characters"
+        });
+      }
+
+      const admin =
+        await User.findById(req.user._id);
+
+      if(!admin){
+        return res.status(404).json({
+          message:"Admin not found"
+        });
+      }
+
+      const isMatch =
+        await bcrypt.compare(
+          currentPassword,
+          admin.password
+        );
+
+      if(!isMatch){
+        return res.status(400).json({
+          message:"Current password is incorrect"
+        });
+      }
+
+      admin.password =
+        await bcrypt.hash(
+          newPassword,
+          10
+        );
+
+      await admin.save();
+
+      res.status(200).json({
+        message:"Password changed successfully"
+      });
+
+    }catch(err){
+
+      console.log(
+        "ADMIN CHANGE PASSWORD ERROR:",
+        err.message
+      );
+
+      res.status(500).json({
+        message:"Failed to change password"
+      });
+    }
+  }
 );
 
 module.exports =
