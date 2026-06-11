@@ -28,24 +28,14 @@ router.post(
         orderId
       } = req.body;
 
-      if(
-        !email ||
-        !amount ||
-        !phone ||
-        !provider ||
-        !orderId
-      ){
+     if(
+  !email ||
+  !amount ||
+  !phone ||
+  !provider
+){
         return res.status(400).json({
-          message:"Email, amount, phone, provider, and orderId are required"
-        });
-      }
-
-      const order =
-        await Order.findById(orderId);
-
-      if(!order){
-        return res.status(404).json({
-          message:"Order not found"
+         message:"Email, amount, phone, and provider are required"
         });
       }
 
@@ -61,16 +51,15 @@ router.post(
             email,
             amount:amountInPesewas,
             currency:"GHS",
-            reference:
-              `MBSWIFT_${orderId}_${Date.now()}`,
+           reference:
+           `MBSWIFT_${Date.now()}`,
             mobile_money:{
               phone,
               provider
             },
-            metadata:{
-              orderId,
-              customerId:req.user?._id
-            }
+           metadata:{
+           customerId:req.user?._id
+         }
           },
           {
             headers:{
@@ -80,17 +69,6 @@ router.post(
             }
           }
         );
-
-      order.paymentReference =
-        response.data?.data?.reference || "";
-
-      order.paymentStatus =
-        "pending";
-
-      order.isPaid =
-        false;
-
-      await order.save();
 
       return res.status(200).json(
         response.data
@@ -105,6 +83,59 @@ router.post(
 
       return res.status(500).json({
         message:"MoMo charge failed",
+        error:err.response?.data || err.message
+      });
+    }
+  }
+);
+
+router.post(
+  "/momo/submit-otp",
+  authMiddleware,
+  async(req,res)=>{
+
+    try{
+
+      const {
+        reference,
+        otp
+      } = req.body;
+
+      if(!reference || !otp){
+        return res.status(400).json({
+          message:"Payment reference and OTP are required"
+        });
+      }
+
+      const response =
+        await axios.post(
+          "https://api.paystack.co/charge/submit_otp",
+          {
+            otp,
+            reference
+          },
+          {
+            headers:{
+              Authorization:
+                `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+              "Content-Type":"application/json"
+            }
+          }
+        );
+
+      return res.status(200).json(
+        response.data
+      );
+
+    }catch(err){
+
+      console.log(
+        "PAYSTACK SUBMIT OTP ERROR:",
+        err.response?.data || err.message
+      );
+
+      return res.status(500).json({
+        message:"Failed to submit payment OTP",
         error:err.response?.data || err.message
       });
     }
