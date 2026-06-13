@@ -135,5 +135,68 @@ router.put(
   }
 );
 
+router.put(
+  "/status",
+  authMiddleware,
+  async(req,res)=>{
+
+    try{
+
+      const {
+        status
+      } = req.body;
+
+      if(
+        !["available","offline"].includes(status)
+      ){
+
+        return res.status(400).json({
+          message:"Invalid rider status"
+        });
+      }
+
+      const user =
+        await User.findById(
+          req.user._id
+        ).select("-password");
+
+      if(!user){
+
+        return res.status(404).json({
+          message:"Rider not found"
+        });
+      }
+
+      if(user.role !== "rider"){
+
+        return res.status(403).json({
+          message:"Only riders can update status"
+        });
+      }
+
+      user.status =
+        status;
+
+      await user.save();
+
+      res.json({
+        message:"Rider status updated successfully",
+        user
+      });
+
+    }catch(err){
+
+      console.log(
+        "RIDER STATUS UPDATE ERROR:",
+        err.message
+      );
+
+      res.status(500).json({
+        message:"Failed to update rider status"
+      });
+    }
+  }
+);
+
 module.exports =
   router;
