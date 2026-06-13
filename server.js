@@ -247,6 +247,7 @@ const customerRoutes = require("./routes/customerRoutes");
 const riderRoutes = require("./routes/riderRoutes");
 const riderStatusHistoryRoutes = require("./routes/riderStatusHistoryRoutes");
 const ratingRoutes = require("./routes/ratingRoutes");
+const chatbotRoutes = require("./routes/chatbotRoutes");
 
 // ROUTES USE
 
@@ -293,6 +294,11 @@ app.use(
 app.use(
   "/api/ratings",
   ratingRoutes
+);
+
+app.use(
+  "/api/chatbot",
+  chatbotRoutes
 );
 
 app.get(
