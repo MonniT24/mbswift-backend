@@ -975,15 +975,30 @@ exports.sendMessage =
       }
 
       const {
-        sender,
         text
       } = req.body;
+
+      if(
+        !text ||
+        !text.trim()
+      ){
+
+        return res.status(400)
+        .json({
+          message:"Message is required"
+        });
+      }
+
+      const sender =
+        req.user.role === "rider"
+        ? "rider"
+        : "customer";
 
       order.messages.push({
 
         sender,
 
-        text,
+        text:text.trim(),
 
         createdAt:
           new Date()
@@ -991,83 +1006,30 @@ exports.sendMessage =
 
       await order.save();
 
-      const io =
-        req.app.get("io");
-
-      if(io && order.rider){
-
-        io.to(
-          order.rider.toString()
-        ).emit(
-          "newMessage",
-          {
-            type:"message",
-            orderId:order._id,
-            sender:sender,
-            message:text,
-            text:text
-          }
-        );
-      }
-
-      if(io && order.customer){
-
-        io.to(
-          order.customer.toString()
-        ).emit(
-          "newMessage",
-          {
-            type:"message",
-            orderId:order._id,
-            sender:sender,
-            message:text,
-            text:text
-          }
-        );
-      }
-
-      if(io){
-
-        io.emit(
-          "orderUpdated"
-        );
-      }
-
-      const updated =
+      const updatedOrder =
         await Order.findById(
-          order._id
+          req.params.id
         )
-
+        .select("-deliveryCode")
         .populate(
           "customer",
           "name phone"
         )
-
         .populate(
           "rider",
           "name phone profileImage motorNumber motorName motorColor latitude longitude status riderAccountStatus riderStatusReason"
         );
 
-      if(req.user.role === "rider"){
-
-        return res.json(
-          sanitizeOrderForRider(
-            updated
-          )
-        );
-      }
-
       res.json(
-        updated
+        updatedOrder
       );
 
-    }catch(err){
-
-      console.log(err);
+    }catch(error){
 
       res.status(500)
       .json({
-        message:err.message
+        message:"Failed to send message",
+        error:error.message
       });
     }
   };
