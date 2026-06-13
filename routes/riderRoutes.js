@@ -24,7 +24,6 @@ const {
   "../controllers/riderController"
 );
 
-
 router.get(
 
   "/me",
@@ -33,7 +32,6 @@ router.get(
 
   getMe
 );
-
 
 router.get(
 
@@ -193,6 +191,46 @@ router.put(
 
       res.status(500).json({
         message:"Failed to update rider status"
+      });
+    }
+  }
+);
+
+router.get(
+  "/available-map",
+  authMiddleware,
+  async(req,res)=>{
+
+    try{
+
+      const riders =
+        await User.find({
+          role:"rider",
+          status:"available",
+          latitude:{
+            $ne:null
+          },
+          longitude:{
+            $ne:null
+          }
+        })
+        .select(
+          "name phone profileImage motorName motorNumber motorColor latitude longitude status"
+        );
+
+      res.json({
+        riders
+      });
+
+    }catch(err){
+
+      console.log(
+        "AVAILABLE RIDERS MAP ERROR:",
+        err.message
+      );
+
+      res.status(500).json({
+        message:"Failed to load available riders"
       });
     }
   }

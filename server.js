@@ -6,6 +6,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const http = require("http");
+const User = require("./models/User");
 
 const { Server } = require("socket.io");
 
@@ -145,15 +146,40 @@ io.on(
     );
 
     socket.on(
-      "riderLocation",
-      (data)=>{
+  "riderLocation",
+  async(data)=>{
 
-        io.emit(
-          "riderLocationUpdate",
-          data
+    try{
+
+      if(
+        data?.riderId &&
+        data?.lat &&
+        data?.lng
+      ){
+
+        await User.findByIdAndUpdate(
+          data.riderId,
+          {
+            latitude:data.lat,
+            longitude:data.lng
+          }
         );
       }
-    );
+
+      io.emit(
+        "riderLocationUpdate",
+        data
+      );
+
+    }catch(err){
+
+      console.log(
+        "RIDER LOCATION SAVE ERROR:",
+        err.message
+      );
+    }
+  }
+);
 
     socket.on(
       "disconnect",
@@ -247,7 +273,6 @@ const customerRoutes = require("./routes/customerRoutes");
 const riderRoutes = require("./routes/riderRoutes");
 const riderStatusHistoryRoutes = require("./routes/riderStatusHistoryRoutes");
 const ratingRoutes = require("./routes/ratingRoutes");
-const chatbotRoutes = require("./routes/chatbotRoutes");
 
 // ROUTES USE
 
@@ -294,11 +319,6 @@ app.use(
 app.use(
   "/api/ratings",
   ratingRoutes
-);
-
-app.use(
-  "/api/chatbot",
-  chatbotRoutes
 );
 
 app.get(
